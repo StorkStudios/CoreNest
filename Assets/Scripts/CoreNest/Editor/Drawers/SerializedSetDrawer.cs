@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(SerializedSet<string>))]
+[CustomPropertyDrawer(typeof(SerializedSet<>), true)]
 public class EnumSerializedSetDrawer : StatefulPropertyDrawer<EnumSerializedSetDrawer.State>
 {
     public class State

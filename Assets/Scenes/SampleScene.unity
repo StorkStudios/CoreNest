@@ -340,6 +340,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testDictionary:
     pairs: []
+  testEnumDictionary:
+    pairs: []
 --- !u!4 &2095867466
 Transform:
   m_ObjectHideFlags: 0

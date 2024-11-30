@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using UnityEngine.Events;
-using UnityEngine.UIElements;
 
-[CustomPropertyDrawer(typeof(SerializedDictionary<string, int>))]
+[CustomPropertyDrawer(typeof(SerializedDictionary<,>), true)]
 public class SerializedDictionaryDrawer : StatefulPropertyDrawer<SerializedDictionaryDrawer.State>
 {
     public class State

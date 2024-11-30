@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
 
-[CustomPropertyDrawer(typeof(SerializationArrayWrapper<string>))]
+[CustomPropertyDrawer(typeof(SerializationArrayWrapper<>), true)]
 public class SerializationArrayWrapperDrawer : StatefulPropertyDrawer<SerializationArrayWrapperDrawer.State>
 {
     public class State

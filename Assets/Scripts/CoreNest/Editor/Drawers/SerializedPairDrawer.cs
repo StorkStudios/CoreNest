@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.Events;
 
-[CustomPropertyDrawer(typeof(SerializedPair<NullableObject<string>, int>))]
+[CustomPropertyDrawer(typeof(SerializedPair<,>), true)]
 public class SerializedPairDrawer : PropertyDrawer
 {
     private const float foldoutTriangleWidth = 10;
