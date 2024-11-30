@@ -3,9 +3,6 @@ using UnityEditor;
 using System.Collections.Generic;
 using UnityEngine.Timeline;
 using System.Reflection;
-using UnityEditor.TerrainTools;
-using System;
-using Codice.Client.Common;
 
 [CustomEditor(typeof(TimelineAsset))]
 [CanEditMultipleObjects]
