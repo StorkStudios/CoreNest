@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObservableValue<T>
+public class ObservableVariable<T>
 {
     public delegate void ValueChangedDelegate(T oldValue, T newValue);
 
@@ -26,12 +26,12 @@ public class ObservableValue<T>
 
     private T current;
 
-    public ObservableValue()
+    public ObservableVariable()
     {
         current = default;
     }
 
-    public ObservableValue(T initialValue)
+    public ObservableVariable(T initialValue)
     {
         current = initialValue;
     }
