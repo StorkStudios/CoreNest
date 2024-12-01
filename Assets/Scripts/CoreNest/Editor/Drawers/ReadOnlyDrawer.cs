@@ -9,7 +9,7 @@ public class ReadOnlyDrawer : PropertyDrawer
     public override float GetPropertyHeight(SerializedProperty property,
                                              GUIContent label)
     {
-        return EditorGUI.GetPropertyHeight(property, label, true);
+        return EditorGUI.GetPropertyHeight(property, label, property.isExpanded);
     }
 
     public override void OnGUI(Rect position,
@@ -18,7 +18,7 @@ public class ReadOnlyDrawer : PropertyDrawer
     {
         using (new GUIEnabledDisposable(false))
         {
-            EditorGUI.PropertyField(position, property, label, true);
+            EditorGUI.PropertyField(position, property, label, property.isExpanded);
         }
     }
 }
