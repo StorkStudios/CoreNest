@@ -372,8 +372,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 963194228}
   pointA:
-    localPosition: {x: 6.46, y: 0, z: 0}
-    localEuler: {x: 0, y: 0, z: 0}
+    localPosition: {x: 7.8614073, y: 8.898245, z: 1.351229}
+    localEuler: {x: 358.35855, y: 50.77912, z: 325.66632}
   pointB:
     localPosition: {x: -10.15042, y: 2.9787626, z: 0}
     localEuler: {x: 0, y: 0, z: 0}
