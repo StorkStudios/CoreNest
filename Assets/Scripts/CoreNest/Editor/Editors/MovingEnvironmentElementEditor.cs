@@ -1,10 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Timeline;
 
 [CustomEditor(typeof(MovingEnvironmentElement))]
 public class MovingEnvironmentElementEditor : Editor
