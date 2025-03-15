@@ -10,8 +10,6 @@ public class SampleComponent : MonoBehaviour
     public SerializedDictionary<string, int> testDictionary;
     public SerializedDictionary<TestEnum, string> testEnumDictionary;
 
-    [TagDropdown]
-    public string tag1;
-    [TagDropdown]
-    public string tag2;
+    public Tag tag1;
+    public Tag tag2;
 }

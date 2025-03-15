@@ -342,8 +342,8 @@ MonoBehaviour:
     pairs: []
   testEnumDictionary:
     pairs: []
-  tag1: Finish
-  tag2: Player
+  tag1: 2
+  tag2: 5
 --- !u!4 &2095867466
 Transform:
   m_ObjectHideFlags: 0
