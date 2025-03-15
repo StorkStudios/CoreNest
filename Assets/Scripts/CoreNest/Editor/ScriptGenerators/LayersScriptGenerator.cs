@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
+[InitializeOnLoad]
 public static class LayersScriptGenerator
 {
     public const string className = "Layers";
