@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
-using UnityEditor.Compilation;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -37,7 +36,7 @@ public static class TagsScriptGenerator
 
     static TagsScriptGenerator()
     {
-        //initialization of static fields in update because they are reset on domain reload and editor update callback is somewhat not
+        //initialization of static fields in update because they are reset on domain reload and editor update callback isn't
         //there can be a situation where update is called and fields have default value
         EditorApplication.update += Update;
     }
