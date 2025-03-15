@@ -9,4 +9,9 @@ public class SampleComponent : MonoBehaviour
 
     public SerializedDictionary<string, int> testDictionary;
     public SerializedDictionary<TestEnum, string> testEnumDictionary;
+
+    [TagDropdown]
+    public string tag1;
+    [TagDropdown]
+    public string tag2;
 }
