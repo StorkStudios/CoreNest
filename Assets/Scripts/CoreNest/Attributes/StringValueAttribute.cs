@@ -1,7 +1,5 @@
 using System;
 using System.Reflection;
-using Unity.VisualScripting.YamlDotNet.Core.Tokens;
-using UnityEngine;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
 public class StringValueAttribute : Attribute
