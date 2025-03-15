@@ -9,4 +9,7 @@ public class SampleComponent : MonoBehaviour
 
     public SerializedDictionary<string, int> testDictionary;
     public SerializedDictionary<TestEnum, string> testEnumDictionary;
+
+    public Tag tag1;
+    public Tag tag2;
 }
