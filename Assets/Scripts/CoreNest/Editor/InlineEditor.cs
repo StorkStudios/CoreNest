@@ -24,6 +24,7 @@ public class InlineEditor
             using (new EditorGUI.DisabledScope("m_Script" == iterator.propertyPath))
             {
                 float height = EditorGUI.GetPropertyHeight(iterator);
+                position.yMax = position.yMin + height;
                 EditorGUI.PropertyField(position, iterator, true);
                 position.yMin += height + EditorGUIUtility.standardVerticalSpacing;
             }

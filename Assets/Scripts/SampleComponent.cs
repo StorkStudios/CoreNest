@@ -12,4 +12,13 @@ public class SampleComponent : MonoBehaviour
 
     public Tag tag1;
     public Tag tag2;
+
+    [EditObjectInInspector]
+    public MovingEnvironmentElement sc;
+
+    [InvokeButton]
+    public void PrintTags()
+    {
+        print($"{tag1.GetTagString()} and {tag2.GetTagString()}");
+    }
 }
