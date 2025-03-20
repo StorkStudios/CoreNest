@@ -21,8 +21,8 @@ public static class TagScriptGenerator
 
     private static string FilePath => Path.Combine(pathToTargetFolder, enumName + extension);
 
-    [MenuItem("Assets/Create/GameManagement/TagsFile", priority = -20)]
-    private static void CreateAndUpdateTagsFile()
+    [MenuItem("Assets/Create/LayersAndTags/TagsFile", priority = -20)]
+    private static void CreateTagsFile()
     {
         if (TryGetPathToTargetFolder() && !string.IsNullOrEmpty(pathToTargetFolder) && File.Exists(FilePath))
         {
@@ -32,7 +32,7 @@ public static class TagScriptGenerator
 
         Directory.CreateDirectory(Path.Combine(Application.dataPath, targetFolderPath));
         File.Create(Path.Combine(Application.dataPath, targetFolderPath, enumName + extension));
-        Update();
+        AssetDatabase.ImportAsset(Path.Combine("Assets", targetFolderPath, enumName + extension));
     }
 
     static TagScriptGenerator()

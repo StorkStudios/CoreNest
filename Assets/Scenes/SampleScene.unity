@@ -344,7 +344,6 @@ MonoBehaviour:
     pairs: []
   tag1: 2
   tag2: 5
-  scene: 2
 --- !u!4 &2095867466
 Transform:
   m_ObjectHideFlags: 0

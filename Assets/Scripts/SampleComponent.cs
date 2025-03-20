@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class SampleComponent : MonoBehaviour
 {
@@ -13,15 +12,4 @@ public class SampleComponent : MonoBehaviour
 
     public Tag tag1;
     public Tag tag2;
-
-    public bool loadSceneOnStart = false;
-    public Scene scene;
-
-    private void Start()
-    {
-        if (loadSceneOnStart)
-        {
-            this.CallDelayed(3, () => SceneManager.LoadScene(scene.GetBuildIndex()));
-        }
-    }
 }
