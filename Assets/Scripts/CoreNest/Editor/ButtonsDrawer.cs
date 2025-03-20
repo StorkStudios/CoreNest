@@ -29,6 +29,12 @@ public class ButtonsDrawer
     {
         foreach ((MethodInfo method, InvokeButtonAttribute attribute) in buttons)
         {
+            if (method.GetParameters().Length > 0)
+            {
+                EditorGUILayout.LabelField($"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
+                continue;
+            }
+
             if (GUILayout.Button(attribute.GetNameForMethod(method)))
             {
                 foreach (Object target in targets)

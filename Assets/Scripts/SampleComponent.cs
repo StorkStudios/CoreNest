@@ -17,8 +17,14 @@ public class SampleComponent : MonoBehaviour
     public MovingEnvironmentElement sc;
 
     [InvokeButton]
-    public void PrintTags()
+    public void PrintBulech()
     {
-        print($"{tag1.GetTagString()} and {tag2.GetTagString()}");
+        Print("Bulech");
+    }
+
+    [InvokeButton]
+    public void Print(string str)
+    {
+        print(str);
     }
 }
