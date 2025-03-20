@@ -7,11 +7,8 @@ public class ButtonsDrawer
 {
     private readonly List<(MethodInfo method, InvokeButtonAttribute attribute)> buttons = new List<(MethodInfo method, InvokeButtonAttribute attribute)>();
 
-    private Object target;
-
     public ButtonsDrawer(Object target)
     {
-        this.target = target;
         BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
         MethodInfo[] methods = target.GetType().GetMethods(bindingFlags);
 
@@ -28,13 +25,16 @@ public class ButtonsDrawer
         }
     }
 
-    public void Draw()
+    public void Draw(IEnumerable<Object> targets)
     {
         foreach ((MethodInfo method, InvokeButtonAttribute attribute) in buttons)
         {
             if (GUILayout.Button(attribute.GetNameForMethod(method)))
             {
-                method.Invoke(target, null);
+                foreach (Object target in targets)
+                {
+                    method.Invoke(target, null);
+                }
             }
         }
     }

@@ -1,8 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
-using Object = UnityEngine.Object;
 
 [CanEditMultipleObjects]
 [CustomEditor(typeof(Object), true)]
@@ -18,6 +15,6 @@ public class ObjectEditor : Editor
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
-        buttonsDrawer.Draw();
+        buttonsDrawer.Draw(targets);
     }
 }
