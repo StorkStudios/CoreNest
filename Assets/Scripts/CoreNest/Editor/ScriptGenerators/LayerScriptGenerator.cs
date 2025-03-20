@@ -18,18 +18,19 @@ public static class LayerScriptGenerator
 
     private static string FilePath => Path.Combine(pathToTargetFolder, enumName + extension);
 
-    [MenuItem("Assets/Create/LayersAndTags/LayersFile", priority = -20)]
-    private static void CreateLayersFile()
+    [MenuItem("Assets/Create/GameManagement/LayersFile", priority = -20)]
+    private static void CreateAndUpdateLayersFile()
     {
         if (TryGetPathToTargetFolder() && !string.IsNullOrEmpty(pathToTargetFolder) && File.Exists(FilePath))
         {
             Debug.LogWarning("Layers file already exists");
+            Update();
             return;
         }
 
         Directory.CreateDirectory(Path.Combine(Application.dataPath, targetFolderPath));
         File.Create(Path.Combine(Application.dataPath, targetFolderPath, enumName + extension));
-        AssetDatabase.ImportAsset(Path.Combine("Assets", targetFolderPath, enumName + extension));
+        Update();
     }
 
     static LayerScriptGenerator()
