@@ -16,6 +16,9 @@ public class SampleComponent : MonoBehaviour
 
     public bool loadSceneOnStart = false;
     public Scene scene;
+    
+    [EditObjectInInspector]
+    public MovingEnvironmentElement sc;
 
     private void Start()
     {
@@ -23,5 +26,17 @@ public class SampleComponent : MonoBehaviour
         {
             this.CallDelayed(3, () => SceneManager.LoadScene(scene.GetBuildIndex()));
         }
+    }
+
+    [InvokeButton]
+    public void PrintBulech()
+    {
+        Print("Bulech");
+    }
+
+    [InvokeButton]
+    public void Print(string str)
+    {
+        print(str);
     }
 }
