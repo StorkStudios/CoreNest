@@ -5,26 +5,69 @@ using UnityEngine;
 
 public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
-    public static event Action<T> Initialized;
+    public static event Action<T> OnInitialize;
 
     public static T Instance 
     {
-        get => instance;
+        get
+        {
+            if (!IsInstanced)
+            {
+                T inst = FindObjectOfType<T>();
+                if (inst != null)
+                {
+                    RegisterInstance(inst);
+                }
+                else
+                {
+                    Debug.LogWarning($"Couldn't find {typeof(T).Name} singleton");
+                }
+            }
+
+            return instance;
+        }
     }
 
     private static T instance;
 
-    private static bool isInitialized = false;
+    public static bool IsInitialized { get; private set; } = false;
+    public static bool IsInstanced { get; private set; } = false;
 
-    public static void CallOnInitialize(Action<T> action)
+    public static void CallWhenInitialized(Action<T> action)
     {
-        if (isInitialized)
+        if (IsInitialized)
         {
             action.Invoke(instance);
         }
         else
         {
-            Initialized.SubscribeOneShot(action);
+            OnInitialize.SubscribeOneShot(action);
         }
+    }
+
+    private static void RegisterInstance(T inst)
+    {
+        if (IsInstanced && instance != inst)
+        {
+            Debug.LogError($"More than one instance of singleton {typeof(T).Name} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+        }
+        else
+        {
+            instance = inst;
+            IsInstanced = true;
+        }
+    }
+
+    private void Awake()
+    {
+        RegisterInstance(this as T);
+        OnInitialize?.Invoke(instance);
+    }
+
+    protected virtual void OnDestroy()
+    {
+        IsInitialized = false;
+        IsInstanced = false;
+        instance = null;
     }
 }
