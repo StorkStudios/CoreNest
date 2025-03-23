@@ -5,65 +5,26 @@ using UnityEngine;
 
 public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
-    public static event Action OnInstantiate;
-    public static bool IsInstanced => instance != null;
+    public static event Action<T> Initialized;
 
-    public static T Instance
+    public static T Instance 
     {
-        get
-        {
-            if (instance == null)
-            {
-                instance = FindObjectOfType<T>();
-                if (instance == null)
-                {
-                    if (!isDestroyed)
-                    {
-                        Debug.LogWarning($"No existing singleton {typeof(T).Name}");
-                    }
-                }
-                else
-                {
-                    InvokeOnInstantiate();
-                }
-            }
-            return instance;
-        }
-
-        private set => instance = value;
+        get => instance;
     }
 
     private static T instance;
 
-    private static bool isDestroyed = false;
+    private static bool isInitialized = false;
 
-    private void RegisterInstance(T inst)
+    public static void CallOnInitialize(Action<T> action)
     {
-        if (instance != null && instance != inst)
+        if (isInitialized)
         {
-            Debug.LogError($"More than one instance of singleton {typeof(T).Name} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+            action.Invoke(instance);
         }
         else
         {
-            instance = inst;
-            InvokeOnInstantiate();
+            Initialized.SubscribeOneShot(action);
         }
-    }
-
-    private static void InvokeOnInstantiate()
-    {
-        isDestroyed = false;
-        OnInstantiate?.Invoke();
-    }
-
-    protected virtual void Awake()
-    {
-        RegisterInstance(this as T);
-    }
-
-    protected virtual void OnDestroy()
-    {
-        isDestroyed = true;
-        instance = null;
     }
 }
