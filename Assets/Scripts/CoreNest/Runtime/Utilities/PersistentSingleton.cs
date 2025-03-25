@@ -11,7 +11,7 @@ public abstract class PersistentSingleton<T> : MonoBehaviour where T : Persisten
         {
             if (!IsInstanced)
             {
-                T inst = FindObjectOfType<T>();
+                T inst = FindAnyObjectByType<T>();
                 SetInstance(inst);
             }
 

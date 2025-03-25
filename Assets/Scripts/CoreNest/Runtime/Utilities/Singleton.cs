@@ -13,7 +13,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
         {
             if (!IsInstanced)
             {
-                T inst = FindObjectOfType<T>();
+                T inst = FindAnyObjectByType<T>();
                 if (inst != null)
                 {
                     RegisterInstance(inst);
