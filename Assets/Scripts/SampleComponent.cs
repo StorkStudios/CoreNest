@@ -26,6 +26,7 @@ public class SampleComponent : MonoBehaviour
         {
             this.CallDelayed(3, () => SceneManager.LoadScene(scene.GetBuildIndex()));
         }
+        this.CallDelayed(3, () => print(SamplerComponenter.Instance.b));
     }
 
     [InvokeButton]

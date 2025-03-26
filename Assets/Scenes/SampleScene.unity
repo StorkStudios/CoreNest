@@ -344,6 +344,7 @@ MonoBehaviour:
     pairs: []
   tag1: 2
   tag2: 5
+  loadSceneOnStart: 0
   scene: 2
   sc: {fileID: 2095867467}
 --- !u!4 &2095867466

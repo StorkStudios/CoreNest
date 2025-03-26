@@ -3,67 +3,71 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Singleton<T> : MonoBehaviour where T : Singleton<T>
+public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
-    public static event Action OnInstantiate;
-    public static bool IsInstanced => instance != null;
+    public static event Action<T> OnInitialize;
 
-    public static T Instance
+    public static T Instance 
     {
         get
         {
-            if (instance == null)
+            if (!IsInstanced)
             {
-                instance = FindObjectOfType<T>();
-                if (instance == null)
+                T inst = FindAnyObjectByType<T>();
+                if (inst != null)
                 {
-                    if (!isDestroyed)
-                    {
-                        Debug.LogWarning($"No existing singleton {typeof(T).Name}");
-                    }
+                    RegisterInstance(inst);
                 }
                 else
                 {
-                    InvokeOnInstantiate();
+                    Debug.LogWarning($"Couldn't find {typeof(T).Name} singleton");
                 }
             }
+
             return instance;
         }
-
-        private set => instance = value;
     }
 
     private static T instance;
 
-    private static bool isDestroyed = false;
+    public static bool IsInitialized { get; private set; } = false;
+    public static bool IsInstanced { get; private set; } = false;
 
-    private void RegisterInstance(T inst)
+    public static void CallWhenInitialized(Action<T> action)
     {
-        if (instance != null && instance != inst)
+        if (IsInitialized)
+        {
+            action.Invoke(instance);
+        }
+        else
+        {
+            OnInitialize.SubscribeOneShot(action);
+        }
+    }
+
+    private static void RegisterInstance(T inst)
+    {
+        if (IsInstanced && instance != inst)
         {
             Debug.LogError($"More than one instance of singleton {typeof(T).Name} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
         }
         else
         {
             instance = inst;
-            InvokeOnInstantiate();
+            IsInstanced = true;
         }
-    }
-
-    private static void InvokeOnInstantiate()
-    {
-        isDestroyed = false;
-        OnInstantiate?.Invoke();
     }
 
     protected virtual void Awake()
     {
         RegisterInstance(this as T);
+        OnInitialize?.Invoke(instance);
     }
 
     protected virtual void OnDestroy()
     {
-        isDestroyed = true;
+        IsInitialized = false;
+        IsInstanced = false;
         instance = null;
     }
 }
