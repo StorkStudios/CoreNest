@@ -12,7 +12,7 @@ public abstract class PersistentSingleton<T> : MonoBehaviour where T : Persisten
             if (!IsInstanced)
             {
                 T inst = FindAnyObjectByType<T>();
-                SetInstance(inst);
+                SetOrCreateInstance(inst);
             }
 
             return instance;
@@ -23,7 +23,7 @@ public abstract class PersistentSingleton<T> : MonoBehaviour where T : Persisten
 
     public static bool IsInstanced { get; private set; } = false;
 
-    private static void SetInstance(T inst)
+    private static void SetOrCreateInstance(T inst)
     {
         if (IsInstanced && instance != inst && inst != null)
         {
@@ -49,7 +49,7 @@ public abstract class PersistentSingleton<T> : MonoBehaviour where T : Persisten
 
     protected virtual void Awake()
     {
-        SetInstance(this as T);
+        SetOrCreateInstance(this as T);
     }
 
     protected virtual void OnDestroy()
