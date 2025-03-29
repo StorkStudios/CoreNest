@@ -9,9 +9,9 @@ public struct Vector2XZ
     public float x;
     public float z;
 
-    public readonly Vector3 AsVector3()
+    public readonly Vector3 AsVector3(float y = 0)
     {
-        return new Vector3(x, 0 , z);
+        return new Vector3(x, y, z);
     }
 
     public Vector2XZ(Vector3 v3)
