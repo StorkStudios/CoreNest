@@ -1,0 +1,11 @@
+{
+    "name": "com.storkstudios.corenest",
+    "version": "1.0.0",
+    "displayName": "Core'Nest",
+    "description": "bleh",
+    "unity": "6000.0",
+    "author": {
+        "name": "Stork'Studios",
+        "url": "https://storkstudios.github.io/"
+    }
+}
