@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class QuaternionHelper
+public static class QuaternionUtils
 {
     //This method works like regular Quaternion.LookRotation,
     //but prioritises upwards vector instead of forward
