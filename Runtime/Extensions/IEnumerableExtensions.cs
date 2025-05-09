@@ -33,4 +33,18 @@ public static class IEnumerableExtensions
             enumerable = enumerable.Take(i).Select((x, k) => k == j ? iElement : x);
         }
     }
+
+    public static T GetRandomElementWeighted<T>(this IEnumerable<T> enumerable, System.Func<T, int> weightProvider)
+    {
+        int totalWeight = enumerable.Sum(x => weightProvider(x));
+        int randomWeightedIndex = Random.Range(0, totalWeight);
+        int itemWeightedIndex = 0;
+        foreach (T item in enumerable)
+        {
+            itemWeightedIndex += weightProvider(item);
+            if (randomWeightedIndex < itemWeightedIndex)
+                return item;
+        }
+        throw new System.ArgumentException("Collection count and weights must be greater than 0");
+    }
 }
