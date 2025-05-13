@@ -5,16 +5,13 @@ using UnityEngine;
 
 public abstract class PersistentSingleton<T> : MonoBehaviour where T : PersistentSingleton<T>
 {
+    public static event Action<T> OnInitialize;
+
     public static T Instance
     {
         get
         {
-            if (!IsInstanced)
-            {
-                T inst = FindAnyObjectByType<T>();
-                SetOrCreateInstance(inst);
-            }
-
+            MakeInstanceIfNeeded();
             return instance;
         }
     }
@@ -22,6 +19,36 @@ public abstract class PersistentSingleton<T> : MonoBehaviour where T : Persisten
     private static T instance;
 
     public static bool IsInstanced { get; private set; } = false;
+    public static bool IsInitialized { get; private set; } = false;
+
+    private static void MakeInstanceIfNeeded()
+    {
+        if (!IsInstanced)
+        {
+            T inst = FindAnyObjectByType<T>();
+            SetOrCreateInstance(inst);
+        }
+    }
+
+    public static void CallWhenInitialized(Action<T> action)
+    {
+        MakeInstanceIfNeeded();
+
+        if (IsInitialized)
+        {
+            action.Invoke(instance);
+        }
+        else
+        {
+            void OneShot(T arg)
+            {
+                action?.Invoke(arg);
+                OnInitialize -= OneShot;
+            }
+
+            OnInitialize += OneShot;
+        }
+    }
 
     private static void SetOrCreateInstance(T inst)
     {
@@ -50,11 +77,14 @@ public abstract class PersistentSingleton<T> : MonoBehaviour where T : Persisten
     protected virtual void Awake()
     {
         SetOrCreateInstance(this as T);
+        IsInitialized = true;
+        OnInitialize?.Invoke(instance);
     }
 
     protected virtual void OnDestroy()
     {
         IsInstanced = false;
+        IsInitialized = false;
         instance = null;
     }
 }
