@@ -41,7 +41,13 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
         }
         else
         {
-            OnInitialize.SubscribeOneShot(action);
+            void OneShot(T arg)
+            {
+                action?.Invoke(arg);
+                OnInitialize -= OneShot;
+            }
+
+            OnInitialize += OneShot;
         }
     }
 
@@ -61,6 +67,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
     protected virtual void Awake()
     {
         RegisterInstance(this as T);
+        IsInitialized = true;
         OnInitialize?.Invoke(instance);
     }
 
