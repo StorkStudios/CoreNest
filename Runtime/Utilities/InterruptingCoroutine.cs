@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Wrapper for a coroutine that executes a function after the specified time.
+/// </summary>
 public class InterruptingCoroutine
 {
     private readonly MonoBehaviour context;
@@ -15,6 +18,9 @@ public class InterruptingCoroutine
         this.functionToCall = functionToCall;
     }
 
+    /// <summary>
+    /// Stops the currently running coroutine (if there is one) and starts a new one with specified <paramref name="delayTime"/>.
+    /// </summary>
     public void Start(float delayTime)
     {
         if (currentCoroutine != null)
@@ -22,9 +28,19 @@ public class InterruptingCoroutine
             Stop();
         }
 
-        currentCoroutine = context.StartCoroutine(CallCoroutine(delayTime, functionToCall));
+        if (delayTime > 0)
+        {
+            currentCoroutine = context.StartCoroutine(CallCoroutine(delayTime, functionToCall));
+        }
+        else
+        {
+            functionToCall?.Invoke();
+        }
     }
 
+    /// <summary>
+    /// Stops the currently running coroutine.
+    /// </summary>
     public void Stop()
     {
         if (currentCoroutine != null)
@@ -44,6 +60,9 @@ public class InterruptingCoroutine
     }
 }
 
+/// <summary>
+/// Wrapper for a coroutine that executes a function after the specified time.
+/// </summary>
 public class InterruptingCoroutine<T>
 {
     private readonly MonoBehaviour context;
@@ -57,6 +76,9 @@ public class InterruptingCoroutine<T>
         this.functionToCall = functionToCall;
     }
 
+    /// <summary>
+    /// Stops the currently running coroutine (if there is one) and starts a new one with specified <paramref name="delayTime"/>.
+    /// </summary>
     public void Start(float delayTime, T parameter)
     {
         if (currentCoroutine != null)
@@ -64,9 +86,19 @@ public class InterruptingCoroutine<T>
             Stop();
         }
 
-        currentCoroutine = context.StartCoroutine(CallCoroutine(delayTime, functionToCall, parameter));
+        if (delayTime > 0)
+        {
+            currentCoroutine = context.StartCoroutine(CallCoroutine(delayTime, functionToCall, parameter));
+        }
+        else
+        {
+            functionToCall?.Invoke(parameter);
+        }
     }
 
+    /// <summary>
+    /// Stops the currently running coroutine.
+    /// </summary>
     public void Stop()
     {
         if (currentCoroutine != null && context != null)
