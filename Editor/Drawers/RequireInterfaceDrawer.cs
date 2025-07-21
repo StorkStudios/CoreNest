@@ -23,7 +23,7 @@ public class RequireInterfaceDrawer : PropertyDrawer
             // Begin drawing property field.
             EditorGUI.BeginProperty(position, label, property);
             // Check for generic type
-            if (requiredAttribute.requiredType.IsGenericType)
+            if (requiredAttribute.requiredType.IsGenericType && requiredAttribute.requiredType.ContainsGenericParameters)
             {
                 // Draw property field of standard interface type.
                 property.objectReferenceValue = EditorGUI.ObjectField(position, label, property.objectReferenceValue, typeof(IGenericInterface), true);
@@ -59,7 +59,7 @@ public class RequireInterfaceDrawer : PropertyDrawer
         }
     }
 
-    private bool GenericInterfaceFilter(System.Type typeObj, System.Object criteriaObj)
+    private bool GenericInterfaceFilter(System.Type typeObj, object criteriaObj)
     {
         if (typeObj.IsGenericType)
         {
