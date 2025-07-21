@@ -1,8 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Component used for creating UI bars that use the <see cref="Image.fillAmount"/> option of the <see cref="Image"/> component.
+/// </summary>
 public class UIBarController : MonoBehaviour
 {
     [Header("References")]
@@ -25,25 +29,38 @@ public class UIBarController : MonoBehaviour
         ChangeValue(value, 1);
     }
 
-    public void ChangeValueInverted(float current, float maxVal)
+    /// <summary>
+    /// Updates images with progress specified by the <paramref name="currentValue"/> and possible <paramref name="maxValue"/>.
+    /// <br/>
+    /// Value [0 - <paramref name="maxValue"/>] is mapped to [1 - 0] bar fill.
+    /// </summary>
+    public void ChangeValueInverted(float currentValue, float maxValue)
     {
-        ChangeValue((maxVal - current), maxVal);
+        ChangeValue((maxValue - currentValue), maxValue);
     }
 
-    public void ChangeValue(float current, float maxVal)
+    /// <summary>
+    /// Updates images with progress specified by the <paramref name="currentValue"/> and possible <paramref name="maxValue"/>.
+    /// <br/>
+    /// Value [0 - <paramref name="maxValue"/>] is mapped to [0 - 1] bar fill.
+    /// </summary>
+    public void ChangeValue(float currentValue, float maxValue)
     {
-        float t = current / maxVal;
-        foreach (Image image in images)
+        float t = Mathf.Clamp01(currentValue / maxValue);
+        foreach (Image image in images.Where(image => image != null))
         {
             image.fillAmount = t;
 
             if (animateColor)
             {
-                image.color = gradient.Evaluate(1 - t);
+                image.color = gradient.Evaluate(t);
             }
         }
     }
 
+    /// <summary>
+    /// Sets the <see cref="Behaviour.enabled"/> value of the image at the specified index in the <see cref="images"/> list.
+    /// </summary>
     public void ImageSetEnabled(int index, bool enabled)
     {
         if (index > images.Count || index < 0)
