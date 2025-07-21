@@ -41,13 +41,16 @@ public class InterruptingCoroutine
     /// <summary>
     /// Stops the currently running coroutine.
     /// </summary>
-    public void Stop()
+    /// <returns>Was the coroutine running.</returns>
+    public bool Stop()
     {
         if (currentCoroutine != null)
         {
             context.StopCoroutine(currentCoroutine);
             currentCoroutine = null;
+            return true;
         }
+        return false;
     }
 
     private IEnumerator CallCoroutine(float delayTime, System.Action delayedFunction)
@@ -99,13 +102,16 @@ public class InterruptingCoroutine<T>
     /// <summary>
     /// Stops the currently running coroutine.
     /// </summary>
-    public void Stop()
+    /// <returns>Was the coroutine running.</returns>
+    public bool Stop()
     {
         if (currentCoroutine != null && context != null)
         {
             context.StopCoroutine(currentCoroutine);
             currentCoroutine = null;
+            return true;
         }
+        return false;
     }
 
     private IEnumerator CallCoroutine(float delayTime, System.Action<T> delayedFunction, T parameter)
