@@ -1,4 +1,5 @@
 using UnityEngine;
+
 /// <summary>
 /// Attribute that require implementation of the provided interface.
 /// </summary>
