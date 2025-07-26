@@ -2,18 +2,21 @@ using System;
 using System.Reflection;
 using UnityEngine;
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class InvokeButtonAttribute : PropertyAttribute
+namespace StorkStudios.CoreNest
 {
-    public string Name { get; private set; }
-
-    public InvokeButtonAttribute(string name = null)
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class InvokeButtonAttribute : PropertyAttribute
     {
-        Name = name;
-    }
+        public string Name { get; private set; }
 
-    public string GetNameForMethod(MethodInfo methodInfo)
-    {
-        return Name ?? methodInfo.Name;
+        public InvokeButtonAttribute(string name = null)
+        {
+            Name = name;
+        }
+
+        public string GetNameForMethod(MethodInfo methodInfo)
+        {
+            return Name ?? methodInfo.Name;
+        }
     }
 }

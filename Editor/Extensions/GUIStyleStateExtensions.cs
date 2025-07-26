@@ -1,16 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public static class GUIStyleStateExtensions
+namespace StorkStudios.CoreNest
 {
-    public static GUIStyleState CreateCopy(this GUIStyleState self)
+    public static class GUIStyleStateExtensions
     {
-        return new GUIStyleState
+        public static GUIStyleState CreateCopy(this GUIStyleState self)
         {
-            textColor = self.textColor,
-            scaledBackgrounds = (Texture2D[])self.scaledBackgrounds.Clone(),
-            background = self.background
-        };
+            return new GUIStyleState
+            {
+                textColor = self.textColor,
+                scaledBackgrounds = (Texture2D[])self.scaledBackgrounds.Clone(),
+                background = self.background
+            };
+        }
     }
 }

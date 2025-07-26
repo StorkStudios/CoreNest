@@ -4,82 +4,85 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class ScriptGeneratorBase
+namespace StorkStudios.CoreNest
 {
-    protected readonly string name;
-    private readonly string extension;
-    private readonly string assetPath;
-
-    private string currentFileContent = "";
-    private string pathToTargetFolder = "";
-
-    private string FilePath => Path.Combine(pathToTargetFolder, name + extension);
-
-    public ScriptGeneratorBase(string name, string assetPath, string extension = ".cs")
+    public abstract class ScriptGeneratorBase
     {
-        this.name = name;
-        this.extension = extension;
-        this.assetPath = assetPath;
-    }
+        protected readonly string name;
+        private readonly string extension;
+        private readonly string assetPath;
 
-    public void CreateAndUpdateFile()
-    {
-        if (TryGetPathToTargetFolder() && !string.IsNullOrEmpty(pathToTargetFolder) && File.Exists(FilePath))
+        private string currentFileContent = "";
+        private string pathToTargetFolder = "";
+
+        private string FilePath => Path.Combine(pathToTargetFolder, name + extension);
+
+        public ScriptGeneratorBase(string name, string assetPath, string extension = ".cs")
         {
-            Debug.LogWarning($"{name + extension} file already exists");
+            this.name = name;
+            this.extension = extension;
+            this.assetPath = assetPath;
+        }
+
+        public void CreateAndUpdateFile()
+        {
+            if (TryGetPathToTargetFolder() && !string.IsNullOrEmpty(pathToTargetFolder) && File.Exists(FilePath))
+            {
+                Debug.LogWarning($"{name + extension} file already exists");
+                UpdateFile();
+                return;
+            }
+
+            Directory.CreateDirectory(Path.Combine(Application.dataPath, assetPath));
+            File.Create(Path.Combine(Application.dataPath, assetPath, name + extension));
             UpdateFile();
-            return;
         }
 
-        Directory.CreateDirectory(Path.Combine(Application.dataPath, assetPath));
-        File.Create(Path.Combine(Application.dataPath, assetPath, name + extension));
-        UpdateFile();
-    }
-
-    public void UpdateFile()
-    {
-        if (!TryGetPathToTargetFolder() || string.IsNullOrEmpty(pathToTargetFolder))
+        public void UpdateFile()
         {
-            return;
+            if (!TryGetPathToTargetFolder() || string.IsNullOrEmpty(pathToTargetFolder))
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(currentFileContent))
+            {
+                TryGetCurrentFileContent();
+            }
+
+            string newFileContent = GetNewFileContent();
+            if (newFileContent != currentFileContent)
+            {
+                currentFileContent = newFileContent;
+                File.WriteAllText(FilePath, currentFileContent);
+
+                //force unity to reimport this script so it recompiles it and doesn't throw warnings that "the file has been modified and unity doesn't know when"
+                AssetDatabase.ImportAsset(Path.Combine("Assets", assetPath, name + extension));
+            }
         }
 
-        if (string.IsNullOrEmpty(currentFileContent))
+        protected abstract string GetNewFileContent();
+
+        private bool TryGetPathToTargetFolder()
         {
-            TryGetCurrentFileContent();
+            pathToTargetFolder = Directory.GetDirectories(Application.dataPath, assetPath).FirstOrDefault();
+            return !string.IsNullOrEmpty(pathToTargetFolder);
         }
 
-        string newFileContent = GetNewFileContent();
-        if (newFileContent != currentFileContent)
+        private bool TryGetCurrentFileContent()
         {
-            currentFileContent = newFileContent;
-            File.WriteAllText(FilePath, currentFileContent);
-
-            //force unity to reimport this script so it recompiles it and doesn't throw warnings that "the file has been modified and unity doesn't know when"
-            AssetDatabase.ImportAsset(Path.Combine("Assets", assetPath, name + extension));
+            string filePath = FilePath;
+            if (File.Exists(filePath))
+            {
+                currentFileContent = File.ReadAllText(filePath);
+                return true;
+            }
+            return false;
         }
-    }
 
-    protected abstract string GetNewFileContent();
-
-    private bool TryGetPathToTargetFolder()
-    {
-        pathToTargetFolder = Directory.GetDirectories(Application.dataPath, assetPath).FirstOrDefault();
-        return !string.IsNullOrEmpty(pathToTargetFolder);
-    }
-
-    private bool TryGetCurrentFileContent()
-    {
-        string filePath = FilePath;
-        if (File.Exists(filePath))
+        public static string ReplaceSpecialCharacters(string str, string specialCharacterRegex = "[^a-zA-Z0-9]", string replacement = "_")
         {
-            currentFileContent = File.ReadAllText(filePath);
-            return true;
+            return Regex.Replace(str, specialCharacterRegex, replacement);
         }
-        return false;
-    }
-
-    public static string ReplaceSpecialCharacters(string str, string specialCharacterRegex = "[^a-zA-Z0-9]", string replacement = "_")
-    {
-        return Regex.Replace(str, specialCharacterRegex, replacement);
     }
 }

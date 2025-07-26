@@ -1,8 +1,10 @@
 using UnityEditor;
-using UnityEngine;
 
-[CustomEditor(typeof(ClickableArea))]
-public class ClickableAreaEditor : Editor
+namespace StorkStudios.CoreNest
 {
-    public override void OnInspectorGUI() { }
+    [CustomEditor(typeof(ClickableArea))]
+    public class ClickableAreaEditor : Editor
+    {
+        public override void OnInspectorGUI() { }
+    }
 }

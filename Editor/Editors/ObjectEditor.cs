@@ -1,20 +1,23 @@
 using UnityEngine;
 using UnityEditor;
 
-[CanEditMultipleObjects]
-[CustomEditor(typeof(Object), true)]
-public class ObjectEditor : Editor
+namespace StorkStudios.CoreNest
 {
-    private ButtonsDrawer buttonsDrawer;
-
-    private void OnEnable()
+    [CanEditMultipleObjects]
+    [CustomEditor(typeof(Object), true)]
+    public class ObjectEditor : Editor
     {
-        buttonsDrawer = new ButtonsDrawer(target);
-    }
+        private ButtonsDrawer buttonsDrawer;
 
-    public override void OnInspectorGUI()
-    {
-        base.OnInspectorGUI();
-        buttonsDrawer.Draw(targets);
+        private void OnEnable()
+        {
+            buttonsDrawer = new ButtonsDrawer(target);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            buttonsDrawer.Draw(targets);
+        }
     }
 }

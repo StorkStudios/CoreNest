@@ -1,52 +1,53 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class InlineEditor
+namespace StorkStudios.CoreNest
 {
-    private SerializedObject obj;
-
-    public InlineEditor(Object objectToDraw)
+    public class InlineEditor
     {
-        obj = new SerializedObject(objectToDraw);
-    }
+        private readonly SerializedObject obj;
 
-    // Copied from unity source code
-    public void DrawInspector(Rect position)
-    {
-        EditorGUI.BeginChangeCheck();
-        obj.UpdateIfRequiredOrScript();
-        SerializedProperty iterator = obj.GetIterator();
-        bool enterChildren = true;
-        while (iterator.NextVisible(enterChildren))
+        public InlineEditor(Object objectToDraw)
         {
-            using (new EditorGUI.DisabledScope("m_Script" == iterator.propertyPath))
+            obj = new SerializedObject(objectToDraw);
+        }
+
+        // Copied from unity source code
+        public void DrawInspector(Rect position)
+        {
+            EditorGUI.BeginChangeCheck();
+            obj.UpdateIfRequiredOrScript();
+            SerializedProperty iterator = obj.GetIterator();
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren))
             {
-                float height = EditorGUI.GetPropertyHeight(iterator);
-                position.yMax = position.yMin + height;
-                EditorGUI.PropertyField(position, iterator, true);
-                position.yMin += height + EditorGUIUtility.standardVerticalSpacing;
+                using (new EditorGUI.DisabledScope("m_Script" == iterator.propertyPath))
+                {
+                    float height = EditorGUI.GetPropertyHeight(iterator);
+                    position.yMax = position.yMin + height;
+                    EditorGUI.PropertyField(position, iterator, true);
+                    position.yMin += height + EditorGUIUtility.standardVerticalSpacing;
+                }
+
+                enterChildren = false;
             }
 
-            enterChildren = false;
+            obj.ApplyModifiedProperties();
+            EditorGUI.EndChangeCheck();
         }
 
-        obj.ApplyModifiedProperties();
-        EditorGUI.EndChangeCheck();
-    }
-
-    public float GetHeight()
-    {
-        SerializedProperty iterator = obj.GetIterator();
-        bool enterChildren = true;
-        float result = 0;
-        while (iterator.NextVisible(enterChildren))
+        public float GetHeight()
         {
-            result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+            SerializedProperty iterator = obj.GetIterator();
+            bool enterChildren = true;
+            float result = 0;
+            while (iterator.NextVisible(enterChildren))
+            {
+                result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
 
-            enterChildren = false;
+                enterChildren = false;
+            }
+            return result;
         }
-        return result;
     }
 }

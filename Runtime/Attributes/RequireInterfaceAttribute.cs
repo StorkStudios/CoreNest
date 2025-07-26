@@ -1,18 +1,22 @@
 using UnityEngine;
 
-/// <summary>
-/// Attribute that require implementation of the provided interface.
-/// </summary>
-public class RequireInterfaceAttribute : PropertyAttribute
+namespace StorkStudios.CoreNest
 {
-    // Interface type.
-    public System.Type requiredType { get; private set; }
     /// <summary>
-    /// Requiring implementation of the <see cref="T:RequireInterfaceAttribute"/> interface.
+    /// Attribute that require implementation of the provided interface.
+    /// Generic interfaces must implement the <see cref="IGenericInterface"/> interface.
     /// </summary>
-    /// <param name="type">Interface type.</param>
-    public RequireInterfaceAttribute(System.Type type)
+    public class RequireInterfaceAttribute : PropertyAttribute
     {
-        this.requiredType = type;
+        // Interface type.
+        public System.Type requiredType { get; private set; }
+        /// <summary>
+        /// Requiring implementation of the <see cref="T:RequireInterfaceAttribute"/> interface.
+        /// </summary>
+        /// <param name="type">Interface type.</param>
+        public RequireInterfaceAttribute(System.Type type)
+        {
+            this.requiredType = type;
+        }
     }
 }

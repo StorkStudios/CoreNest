@@ -1,24 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
-public class ReadOnlyDrawer : PropertyDrawer
+namespace StorkStudios.CoreNest
 {
-    public override float GetPropertyHeight(SerializedProperty property,
-                                             GUIContent label)
+    [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
+    public class ReadOnlyDrawer : PropertyDrawer
     {
-        return EditorGUI.GetPropertyHeight(property, label, property.isExpanded);
-    }
-
-    public override void OnGUI(Rect position,
-                               SerializedProperty property,
-                               GUIContent label)
-    {
-        using (new GUIEnabledDisposable(false))
+        public override float GetPropertyHeight(SerializedProperty property,
+                                                 GUIContent label)
         {
-            EditorGUI.PropertyField(position, property, label, property.isExpanded);
+            return EditorGUI.GetPropertyHeight(property, label, property.isExpanded);
+        }
+
+        public override void OnGUI(Rect position,
+                                   SerializedProperty property,
+                                   GUIContent label)
+        {
+            using (new EditorGUI.DisabledGroupScope(true))
+            {
+                EditorGUI.PropertyField(position, property, label, property.isExpanded);
+            }
         }
     }
 }

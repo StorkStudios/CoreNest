@@ -1,16 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(CanvasRenderer))]
-public class ClickableArea : Graphic
+namespace StorkStudios.CoreNest
 {
-    public override bool Raycast(Vector2 sp, Camera eventCamera)
+    [RequireComponent(typeof(CanvasRenderer))]
+    public class ClickableArea : Graphic
     {
-        return true;
-    }
+        public override bool Raycast(Vector2 sp, Camera eventCamera)
+        {
+            return true;
+        }
 
-    protected override void OnPopulateMesh(VertexHelper vh)
-    {
-        vh.Clear();
+        protected override void OnPopulateMesh(VertexHelper vh)
+        {
+            vh.Clear();
+        }
     }
 }

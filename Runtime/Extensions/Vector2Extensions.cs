@@ -1,9 +1,12 @@
 using UnityEngine;
 
-public static class Vector2Extensions
+namespace StorkStudios.CoreNest
 {
-    public static Vector3 ToVector3(this Vector2 vector, float z = 0)
+    public static class Vector2Extensions
     {
-        return new Vector3(vector.x, vector.y, z);
+        public static Vector3 ToVector3(this Vector2 vector, float z = 0)
+        {
+            return new Vector3(vector.x, vector.y, z);
+        }
     }
 }
