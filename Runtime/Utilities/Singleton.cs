@@ -1,80 +1,81 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
+namespace StorkStudios.CoreNest
 {
-    public static event Action<T> OnInitialize;
-
-    public static T Instance 
+    public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
     {
-        get
+        public static event Action<T> OnInitialize;
+
+        public static T Instance
         {
-            if (!IsInstanced)
+            get
             {
-                T inst = FindAnyObjectByType<T>();
-                if (inst != null)
+                if (!IsInstanced)
                 {
-                    RegisterInstance(inst);
+                    T inst = FindAnyObjectByType<T>();
+                    if (inst != null)
+                    {
+                        RegisterInstance(inst);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Couldn't find {typeof(T).Name} singleton");
+                    }
                 }
-                else
-                {
-                    Debug.LogWarning($"Couldn't find {typeof(T).Name} singleton");
-                }
+
+                return instance;
             }
-
-            return instance;
         }
-    }
 
-    private static T instance;
+        private static T instance;
 
-    public static bool IsInitialized { get; private set; } = false;
-    public static bool IsInstanced { get; private set; } = false;
+        public static bool IsInitialized { get; private set; } = false;
+        public static bool IsInstanced { get; private set; } = false;
 
-    public static void CallWhenInitialized(Action<T> action)
-    {
-        if (IsInitialized)
+        public static void CallWhenInitialized(Action<T> action)
         {
-            action.Invoke(instance);
-        }
-        else
-        {
-            void OneShot(T arg)
+            if (IsInitialized)
             {
-                action?.Invoke(arg);
-                OnInitialize -= OneShot;
+                action.Invoke(instance);
             }
+            else
+            {
+                void OneShot(T arg)
+                {
+                    action?.Invoke(arg);
+                    OnInitialize -= OneShot;
+                }
 
-            OnInitialize += OneShot;
+                OnInitialize += OneShot;
+            }
         }
-    }
 
-    private static void RegisterInstance(T inst)
-    {
-        if (IsInstanced && instance != inst)
+        private static void RegisterInstance(T inst)
         {
-            Debug.LogError($"More than one instance of singleton {typeof(T).Name} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+            if (IsInstanced && instance != inst)
+            {
+                Debug.LogError($"More than one instance of singleton {typeof(T).Name} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+            }
+            else
+            {
+                instance = inst;
+                IsInstanced = true;
+            }
         }
-        else
+
+        protected virtual void Awake()
         {
-            instance = inst;
-            IsInstanced = true;
+            RegisterInstance(this as T);
+            IsInitialized = true;
+            OnInitialize?.Invoke(instance);
         }
-    }
 
-    protected virtual void Awake()
-    {
-        RegisterInstance(this as T);
-        IsInitialized = true;
-        OnInitialize?.Invoke(instance);
-    }
-
-    protected virtual void OnDestroy()
-    {
-        IsInitialized = false;
-        IsInstanced = false;
-        instance = null;
+        protected virtual void OnDestroy()
+        {
+            IsInitialized = false;
+            IsInstanced = false;
+            instance = null;
+        }
     }
 }

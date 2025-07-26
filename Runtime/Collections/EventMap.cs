@@ -1,82 +1,83 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class EventMap<T>
+namespace StorkStudios.CoreNest
 {
-    private Dictionary<T, EventHandlerWrapper> eventDictionary = new Dictionary<T, EventHandlerWrapper>();
-
-    public void AddListener(T key, System.Action action)
+    public class EventMap<TKey>
     {
-        if (!eventDictionary.ContainsKey(key))
-        {
-            eventDictionary.Add(key, new EventHandlerWrapper());
-        }
-        //Remove potential duplicate listener
-        eventDictionary[key] -= action;
-        eventDictionary[key] += action;
-    }
+        private Dictionary<TKey, EventHandlerWrapper> eventDictionary = new Dictionary<TKey, EventHandlerWrapper>();
 
-    public void RemoveListener(T key, System.Action action)
-    {
-        if (!eventDictionary.ContainsKey(key))
+        public void AddListener(TKey key, System.Action action)
         {
-            return;
+            if (!eventDictionary.ContainsKey(key))
+            {
+                eventDictionary.Add(key, new EventHandlerWrapper());
+            }
+            //Remove potential duplicate listener
+            eventDictionary[key] -= action;
+            eventDictionary[key] += action;
         }
 
-        eventDictionary[key] -= action;
-        if (eventDictionary[key].IsEmpty())
+        public void RemoveListener(TKey key, System.Action action)
         {
-            eventDictionary.Remove(key);
-        }
-    }
+            if (!eventDictionary.ContainsKey(key))
+            {
+                return;
+            }
 
-    public void Invoke(T key)
-    {
-        if (!eventDictionary.ContainsKey(key))
-        {
-            return;
-        }
-        eventDictionary[key].Invoke();
-    }
-}
-
-
-public class EventMap<T, U>
-{
-    private Dictionary<T, EventHandlerWrapper<U>> eventDictionary = new Dictionary<T, EventHandlerWrapper<U>>();
-
-    public void AddListener(T key, System.Action<U> action)
-    {
-        if (!eventDictionary.ContainsKey(key))
-        {
-            eventDictionary.Add(key, new EventHandlerWrapper<U>());
-        }
-        //Remove potential duplicate listener
-        eventDictionary[key] -= action;
-        eventDictionary[key] += action;
-    }
-
-    public void RemoveListener(T key, System.Action<U> action)
-    {
-        if (!eventDictionary.ContainsKey(key))
-        {
-            return;
+            eventDictionary[key] -= action;
+            if (eventDictionary[key].IsEmpty())
+            {
+                eventDictionary.Remove(key);
+            }
         }
 
-        eventDictionary[key] -= action;
-        if (eventDictionary[key].IsEmpty())
+        public void Invoke(TKey key)
         {
-            eventDictionary.Remove(key);
+            if (!eventDictionary.ContainsKey(key))
+            {
+                return;
+            }
+            eventDictionary[key].Invoke();
         }
     }
 
-    public void Invoke(T key, U arg)
+
+    public class EventMap<TKey, TArg>
     {
-        if (!eventDictionary.ContainsKey(key))
+        private Dictionary<TKey, EventHandlerWrapper<TArg>> eventDictionary = new Dictionary<TKey, EventHandlerWrapper<TArg>>();
+
+        public void AddListener(TKey key, System.Action<TArg> action)
         {
-            return;
+            if (!eventDictionary.ContainsKey(key))
+            {
+                eventDictionary.Add(key, new EventHandlerWrapper<TArg>());
+            }
+            //Remove potential duplicate listener
+            eventDictionary[key] -= action;
+            eventDictionary[key] += action;
         }
-        eventDictionary[key].Invoke(arg);
+
+        public void RemoveListener(TKey key, System.Action<TArg> action)
+        {
+            if (!eventDictionary.ContainsKey(key))
+            {
+                return;
+            }
+
+            eventDictionary[key] -= action;
+            if (eventDictionary[key].IsEmpty())
+            {
+                eventDictionary.Remove(key);
+            }
+        }
+
+        public void Invoke(TKey key, TArg arg)
+        {
+            if (!eventDictionary.ContainsKey(key))
+            {
+                return;
+            }
+            eventDictionary[key].Invoke(arg);
+        }
     }
 }

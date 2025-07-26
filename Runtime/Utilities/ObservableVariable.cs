@@ -1,38 +1,39 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class ObservableVariable<T>
+namespace StorkStudios.CoreNest
 {
-    public delegate void ValueChangedDelegate(T oldValue, T newValue);
-
-    public event ValueChangedDelegate ValueChanged;
-
-    public T Value
+    public class ObservableVariable<T>
     {
-        get => current;
-        set
+        public delegate void ValueChangedDelegate(T oldValue, T newValue);
+
+        public event ValueChangedDelegate ValueChanged;
+
+        public T Value
         {
-            if (EqualityComparer<T>.Default.Equals(current, value))
+            get => current;
+            set
             {
-                return;
+                if (EqualityComparer<T>.Default.Equals(current, value))
+                {
+                    return;
+                }
+
+                T oldValue = current;
+                current = value;
+                ValueChanged?.Invoke(oldValue, current);
             }
-
-            T oldValue = current;
-            current = value;
-            ValueChanged?.Invoke(oldValue, current);
         }
-    }
 
-    private T current;
+        private T current;
 
-    public ObservableVariable()
-    {
-        current = default;
-    }
+        public ObservableVariable()
+        {
+            current = default;
+        }
 
-    public ObservableVariable(T initialValue)
-    {
-        current = initialValue;
+        public ObservableVariable(T initialValue)
+        {
+            current = initialValue;
+        }
     }
 }

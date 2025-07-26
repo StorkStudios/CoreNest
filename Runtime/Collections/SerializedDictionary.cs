@@ -1,37 +1,38 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class SerializedDictionary<TKey, TValue> : Dictionary<NullableObject<TKey>, TValue>, ISerializationCallbackReceiver
+namespace StorkStudios.CoreNest
 {
-    [SerializeField]
-    private List<SerializedPair<NullableObject<TKey>, TValue>> pairs = new List<SerializedPair<NullableObject<TKey>, TValue>>();
-
-    public void OnAfterDeserialize()
+    [System.Serializable]
+    public class SerializedDictionary<TKey, TValue> : Dictionary<NullableObject<TKey>, TValue>, ISerializationCallbackReceiver
     {
-        Clear();
-        for (int i = 0; i < pairs.Count; i++)
+        [SerializeField]
+        private List<SerializedPair<NullableObject<TKey>, TValue>> pairs = new List<SerializedPair<NullableObject<TKey>, TValue>>();
+
+        public void OnAfterDeserialize()
         {
-            if (!ContainsKey(pairs[i].Key))
+            Clear();
+            for (int i = 0; i < pairs.Count; i++)
             {
-                this[pairs[i].Key] = pairs[i].Value;
-            }
-            else
-            {
-                this[default(TKey)] = pairs[i].Value;
+                if (!ContainsKey(pairs[i].Key))
+                {
+                    this[pairs[i].Key] = pairs[i].Value;
+                }
+                else
+                {
+                    this[default(TKey)] = pairs[i].Value;
+                }
             }
         }
-    }
 
-    public void OnBeforeSerialize()
-    {
-        pairs.Clear();
-
-        foreach (var item in this)
+        public void OnBeforeSerialize()
         {
-            pairs.Add(item);
+            pairs.Clear();
+
+            foreach (var item in this)
+            {
+                pairs.Add(item);
+            }
         }
     }
 }

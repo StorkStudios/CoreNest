@@ -1,24 +1,25 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
 
-public abstract class StatefulPropertyDrawer<StateType> : PropertyDrawer where StateType : class
+namespace StorkStudios.CoreNest
 {
-    private Dictionary<string, StateType> states;
-
-    protected abstract StateType CreateState(SerializedProperty property);
-
-    protected StateType GetState(SerializedProperty property)
+    public abstract class StatefulPropertyDrawer<StateType> : PropertyDrawer where StateType : class
     {
-        states ??= new Dictionary<string, StateType>();
+        private Dictionary<string, StateType> states;
 
-        string key = property.propertyPath;
-        if (!states.ContainsKey(key))
+        protected abstract StateType CreateState(SerializedProperty property);
+
+        protected StateType GetState(SerializedProperty property)
         {
-            states.Add(key, CreateState(property));
-        }
+            states ??= new Dictionary<string, StateType>();
 
-        return states[key];
+            string key = property.propertyPath;
+            if (!states.ContainsKey(key))
+            {
+                states.Add(key, CreateState(property));
+            }
+
+            return states[key];
+        }
     }
 }

@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public static class RectOffsetExtensions
+namespace StorkStudios.CoreNest
 {
-    public static RectOffset CreateCopy(this RectOffset self)
+    public static class RectOffsetExtensions
     {
-        return new RectOffset(self.left, self.right, self.top, self.bottom);
+        public static RectOffset CreateCopy(this RectOffset self)
+        {
+            return new RectOffset(self.left, self.right, self.top, self.bottom);
+        }
     }
 }

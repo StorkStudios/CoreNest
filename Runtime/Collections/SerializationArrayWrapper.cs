@@ -1,17 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class SerializationArrayWrapper<T>
+namespace StorkStudios.CoreNest
 {
-    [SerializeField]
-    public T[] Array;
-
-    public T this[int i]
+    [System.Serializable]
+    public class SerializationArrayWrapper<T>
     {
-        get { return Array[i]; }
-        set { Array[i] = value; }
+        [SerializeField]
+        public T[] Array;
+
+        public T this[int i]
+        {
+            get { return Array[i]; }
+            set { Array[i] = value; }
+        }
+        public int Length { get { return Array.Length; } }
     }
-    public int Length { get { return Array.Length; } }
 }

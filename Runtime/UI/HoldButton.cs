@@ -3,32 +3,35 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class HoldButton : Button, IPointerDownHandler, IPointerUpHandler
+namespace StorkStudios.CoreNest
 {
-    public UnityEvent<float> buttonDownUpdate;
-    public UnityEvent buttonDown;
-
-    public bool IsHeld { get; private set; } = false;
-    private float pressTimestamp;
-
-    private void Update()
+    public class HoldButton : Button, IPointerDownHandler, IPointerUpHandler
     {
-        if (!IsHeld && IsPressed())
+        public UnityEvent<float> buttonDownUpdate;
+        public UnityEvent buttonDown;
+
+        public bool IsHeld { get; private set; } = false;
+        private float pressTimestamp;
+
+        private void Update()
         {
-            IsHeld = true;
-            pressTimestamp = Time.time;
-            buttonDown.Invoke();
-        }
-        if (IsHeld)
-        {
-            if (!IsPressed())
+            if (!IsHeld && IsPressed())
             {
-                IsHeld = false;
-                onClick.Invoke();
+                IsHeld = true;
+                pressTimestamp = Time.time;
+                buttonDown.Invoke();
             }
-            else
+            if (IsHeld)
             {
-                buttonDownUpdate.Invoke(Time.time - pressTimestamp);
+                if (!IsPressed())
+                {
+                    IsHeld = false;
+                    onClick.Invoke();
+                }
+                else
+                {
+                    buttonDownUpdate.Invoke(Time.time - pressTimestamp);
+                }
             }
         }
     }

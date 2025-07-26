@@ -1,35 +1,37 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public static class MonoBehaviourExtensions
+namespace StorkStudios.CoreNest
 {
-    public static Coroutine CallDelayed(this MonoBehaviour monoBehaviour, float delayTime, System.Action functionToCall)
+    public static class MonoBehaviourExtensions
     {
-        if (delayTime <= 0)
+        public static Coroutine CallDelayed(this MonoBehaviour monoBehaviour, float delayTime, System.Action functionToCall)
         {
-            functionToCall?.Invoke();
-            return null;
+            if (delayTime <= 0)
+            {
+                functionToCall?.Invoke();
+                return null;
+            }
+            return monoBehaviour.StartCoroutine(CallDelayedCoroutine(delayTime, functionToCall));
         }
-        return monoBehaviour.StartCoroutine(CallDelayedCoroutine(delayTime, functionToCall));
-    }
 
-    private static IEnumerator CallDelayedCoroutine(float delayTime, System.Action delayedFunction)
-    {
-        yield return new WaitForSeconds(delayTime);
+        private static IEnumerator CallDelayedCoroutine(float delayTime, System.Action delayedFunction)
+        {
+            yield return new WaitForSeconds(delayTime);
 
-        delayedFunction?.Invoke();
-    }
+            delayedFunction?.Invoke();
+        }
 
-    public static Coroutine CallNextFrame(this MonoBehaviour monoBehaviour, System.Action functionToCall)
-    {
-        return monoBehaviour.StartCoroutine(CallNextFrameCoroutine(functionToCall));
-    }
+        public static Coroutine CallNextFrame(this MonoBehaviour monoBehaviour, System.Action functionToCall)
+        {
+            return monoBehaviour.StartCoroutine(CallNextFrameCoroutine(functionToCall));
+        }
 
-    private static IEnumerator CallNextFrameCoroutine(System.Action delayedFunction)
-    {
-        yield return null;
+        private static IEnumerator CallNextFrameCoroutine(System.Action delayedFunction)
+        {
+            yield return null;
 
-        delayedFunction?.Invoke();
+            delayedFunction?.Invoke();
+        }
     }
 }

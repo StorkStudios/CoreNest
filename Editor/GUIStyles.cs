@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class GUIStyles
+namespace StorkStudios.CoreNest
 {
-    public static GUIStyle Bold = new GUIStyle(GUI.skin.label)
+    public class GUIStyles
     {
-        fontStyle = FontStyle.Bold
-    };
+        public static GUIStyle Bold = new GUIStyle(GUI.skin.label)
+        {
+            fontStyle = FontStyle.Bold
+        };
+    }
 }

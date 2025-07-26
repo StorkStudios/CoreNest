@@ -1,38 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.Events;
 
-[CustomPropertyDrawer(typeof(SerializedPair<,>), true)]
-public class SerializedPairDrawer : PropertyDrawer
+namespace StorkStudios.CoreNest
 {
-    private const float foldoutTriangleWidth = 10;
-
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    [CustomPropertyDrawer(typeof(SerializedPair<,>), true)]
+    public class SerializedPairDrawer : PropertyDrawer
     {
-        SerializedProperty value = property.FindPropertyRelative("Value");
-        SerializedProperty key = property.FindPropertyRelative("Key");
+        private const float foldoutTriangleWidth = 10;
 
-        EditorGUI.BeginProperty(position, label, property);
-        position.yMin += EditorGUIUtility.standardVerticalSpacing;
-        position.xMin += foldoutTriangleWidth;
-        Rect valuePosition = new Rect(position);
-        Rect keyPosition = new Rect(position);
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            SerializedProperty value = property.FindPropertyRelative("Value");
+            SerializedProperty key = property.FindPropertyRelative("Key");
 
-        valuePosition.yMin += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-        keyPosition.height = EditorGUIUtility.singleLineHeight;
+            EditorGUI.BeginProperty(position, label, property);
+            position.yMin += EditorGUIUtility.standardVerticalSpacing;
+            position.xMin += foldoutTriangleWidth;
+            Rect valuePosition = new Rect(position);
+            Rect keyPosition = new Rect(position);
 
-        EditorGUI.PropertyField(valuePosition, value, new GUIContent("Value"), true);
-        EditorGUI.PropertyField(keyPosition, key, new GUIContent("Key"));
+            valuePosition.yMin += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            keyPosition.height = EditorGUIUtility.singleLineHeight;
 
-        EditorGUI.EndProperty();
-    }
+            EditorGUI.PropertyField(valuePosition, value, new GUIContent("Value"), true);
+            EditorGUI.PropertyField(keyPosition, key, new GUIContent("Key"));
 
-    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-    {
-        float keyHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("Key"), label);
-        float valueHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("Value"), label);
-        return keyHeight + valueHeight + EditorGUIUtility.standardVerticalSpacing * 2;
+            EditorGUI.EndProperty();
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            float keyHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("Key"), label);
+            float valueHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("Value"), label);
+            return keyHeight + valueHeight + EditorGUIUtility.standardVerticalSpacing * 2;
+        }
     }
 }

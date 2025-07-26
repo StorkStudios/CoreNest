@@ -1,29 +1,31 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class SerializedQueue<T> : Queue<T>, ISerializationCallbackReceiver
+namespace StorkStudios.CoreNest
 {
-    [SerializeField]
-    private List<T> values = new List<T>();
-
-    public void OnAfterDeserialize()
+    [System.Serializable]
+    public class SerializedQueue<T> : Queue<T>, ISerializationCallbackReceiver
     {
-        Clear();
+        [SerializeField]
+        private List<T> values = new List<T>();
 
-        foreach (T item in values)
+        public void OnAfterDeserialize()
         {
-            Enqueue(item);
+            Clear();
+
+            foreach (T item in values)
+            {
+                Enqueue(item);
+            }
         }
-    }
 
-    public void OnBeforeSerialize()
-    {
-        values = new List<T>(ToArray());
-    }
+        public void OnBeforeSerialize()
+        {
+            values = new List<T>(ToArray());
+        }
 
-    public SerializedQueue() : base() { }
-    public SerializedQueue(int capacity) : base(capacity) { }
-    public SerializedQueue(IEnumerable<T> collection) : base(collection) { }
+        public SerializedQueue() : base() { }
+        public SerializedQueue(int capacity) : base(capacity) { }
+        public SerializedQueue(IEnumerable<T> collection) : base(collection) { }
+    }
 }

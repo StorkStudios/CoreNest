@@ -1,87 +1,87 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEngine;
 
-[System.Serializable]
-public struct NullableObject<T>
+namespace StorkStudios.CoreNest
 {
-    [SerializeField]
-    private T item;
-
-    public T Item => item;
-
-    private NullableObject(T item) : this()
+    [System.Serializable]
+    public struct NullableObject<T>
     {
-        this.item = item;
-    }
+        [SerializeField]
+        private T item;
 
-    public static NullableObject<T> Null()
-    {
-        return new NullableObject<T>();
-    }
+        public T Item => item;
 
-    public bool IsNull()
-    {
-        return item == null;
-    }
-
-    public static implicit operator T(NullableObject<T> nullObject)
-    {
-        return nullObject.item;
-    }
-
-    public static implicit operator NullableObject<T>(T item)
-    {
-        return new NullableObject<T>(item);
-    }
-
-    public override string ToString()
-    {
-        return (item != null) ? Item.ToString() : "NULL";
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (obj == null)
+        private NullableObject(T item) : this()
         {
-            return IsNull();
+            this.item = item;
         }
 
-        if (!(obj is NullableObject<T>))
+        public static NullableObject<T> Null()
         {
-            return false;
+            return new NullableObject<T>();
         }
 
-        var no = (NullableObject<T>)obj;
-
-        if (IsNull())
+        public bool IsNull()
         {
-            return no.IsNull();
+            return item == null;
         }
 
-        if (no.IsNull())
+        public static implicit operator T(NullableObject<T> nullObject)
         {
-            return false;
+            return nullObject.item;
         }
 
-        return Item.Equals(no.Item);
-    }
-
-    public override int GetHashCode()
-    {
-        if (IsNull())
+        public static implicit operator NullableObject<T>(T item)
         {
-            return 0;
+            return new NullableObject<T>(item);
         }
 
-        var result = Item.GetHashCode();
-
-        if (result >= 0)
+        public override string ToString()
         {
-            result++;
+            return (item != null) ? Item.ToString() : "NULL";
         }
 
-        return result;
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return IsNull();
+            }
+
+            if (obj is not NullableObject<T>)
+            {
+                return false;
+            }
+
+            var no = (NullableObject<T>)obj;
+
+            if (IsNull())
+            {
+                return no.IsNull();
+            }
+
+            if (no.IsNull())
+            {
+                return false;
+            }
+
+            return Item.Equals(no.Item);
+        }
+
+        public override int GetHashCode()
+        {
+            if (IsNull())
+            {
+                return 0;
+            }
+
+            var result = Item.GetHashCode();
+
+            if (result >= 0)
+            {
+                result++;
+            }
+
+            return result;
+        }
     }
 }

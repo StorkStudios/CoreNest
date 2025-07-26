@@ -2,20 +2,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public static class PointerEventExtensions
+namespace StorkStudios.CoreNest
 {
-    private static List<RaycastResult> raycastResults = new List<RaycastResult>();
-
-    public static GameObject GetNextRaycastTarget(this PointerEventData eventData, GameObject current)
+    public static class PointerEventExtensions
     {
-        raycastResults.Clear();
-        EventSystem.current.RaycastAll(eventData, raycastResults);
-        int currentIndex = raycastResults.FindIndex(e => e.gameObject == current);
-        int nextObject = currentIndex + 1;
-        if (nextObject >= raycastResults.Count)
+        private static List<RaycastResult> raycastResults = new List<RaycastResult>();
+
+        public static GameObject GetNextRaycastTarget(this PointerEventData eventData, GameObject current)
         {
-            return null;
+            raycastResults.Clear();
+            EventSystem.current.RaycastAll(eventData, raycastResults);
+            int currentIndex = raycastResults.FindIndex(e => e.gameObject == current);
+            int nextObject = currentIndex + 1;
+            if (nextObject >= raycastResults.Count)
+            {
+                return null;
+            }
+            return raycastResults[nextObject].gameObject;
         }
-        return raycastResults[nextObject].gameObject;
     }
 }

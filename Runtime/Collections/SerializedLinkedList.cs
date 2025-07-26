@@ -1,30 +1,32 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class SerializedLinkedList<T> : LinkedList<T>, ISerializationCallbackReceiver
+namespace StorkStudios.CoreNest
 {
-    [SerializeField]
-    private List<T> values = new List<T>();
-
-    public void OnAfterDeserialize()
+    [System.Serializable]
+    public class SerializedLinkedList<T> : LinkedList<T>, ISerializationCallbackReceiver
     {
-        Clear();
+        [SerializeField]
+        private List<T> values = new List<T>();
 
-        foreach (T item in values)
+        public void OnAfterDeserialize()
         {
-            AddLast(item);
+            Clear();
+
+            foreach (T item in values)
+            {
+                AddLast(item);
+            }
         }
-    }
 
-    public void OnBeforeSerialize()
-    {
-        values.Clear();
-        Enumerator enumerator = GetEnumerator();
-        while(enumerator.MoveNext())
+        public void OnBeforeSerialize()
         {
-            values.Add(enumerator.Current);
+            values.Clear();
+            Enumerator enumerator = GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                values.Add(enumerator.Current);
+            }
         }
     }
 }

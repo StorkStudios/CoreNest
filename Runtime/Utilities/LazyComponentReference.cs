@@ -1,26 +1,26 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class LazyComponentReference<T> where T : Component
+namespace StorkStudios.CoreNest
 {
-    private T component;
-    private bool hasValue = false;
-    private MonoBehaviour context;
-
-    public LazyComponentReference(MonoBehaviour context)
+    public class LazyComponentReference<T> where T : Component
     {
-        this.context = context;
-    }
+        private T component;
+        private bool hasValue = false;
+        private MonoBehaviour context;
 
-    public T GetValue()
-    {
-        if (!hasValue)
+        public LazyComponentReference(MonoBehaviour context)
         {
-            component = context.GetComponent<T>();
-            hasValue = true;
+            this.context = context;
         }
-        return component;
+
+        public T GetValue()
+        {
+            if (!hasValue)
+            {
+                component = context.GetComponent<T>();
+                hasValue = true;
+            }
+            return component;
+        }
     }
 }

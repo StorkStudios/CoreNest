@@ -1,16 +1,17 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using static UnityEngine.InputSystem.InputActionRebindingExtensions;
 
-public static class RebindingOperationExtensions
+namespace StorkStudios.CoreNest
 {
-    public static RebindingOperation WithControlsExcludingAll(this RebindingOperation operation, IEnumerable<string> paths)
+    public static class RebindingOperationExtensions
     {
-        foreach (string path in paths)
+        public static RebindingOperation WithControlsExcludingAll(this RebindingOperation operation, IEnumerable<string> paths)
         {
-            operation.WithControlsExcluding(path);
+            foreach (string path in paths)
+            {
+                operation.WithControlsExcluding(path);
+            }
+            return operation;
         }
-        return operation;
     }
 }

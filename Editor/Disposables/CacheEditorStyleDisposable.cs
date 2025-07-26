@@ -1,21 +1,22 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class CacheEditorStyleDisposable : IDisposable
+namespace StorkStudios.CoreNest
 {
-    private readonly GUIStyle styleReference;
-    private readonly GUIStyle cachedStyle;
-
-    public CacheEditorStyleDisposable(GUIStyle styleToOverride)
+    public class CacheEditorStyleDisposable : IDisposable
     {
-        styleReference = styleToOverride;
-        cachedStyle = new GUIStyle(styleToOverride);
-    }
+        private readonly GUIStyle styleReference;
+        private readonly GUIStyle cachedStyle;
 
-    public void Dispose()
-    {
-        cachedStyle.CopyInto(styleReference);
+        public CacheEditorStyleDisposable(GUIStyle styleToOverride)
+        {
+            styleReference = styleToOverride;
+            cachedStyle = new GUIStyle(styleToOverride);
+        }
+
+        public void Dispose()
+        {
+            cachedStyle.CopyInto(styleReference);
+        }
     }
 }

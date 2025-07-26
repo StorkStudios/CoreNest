@@ -1,9 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class ActiveCoroutineContext : Singleton<ActiveCoroutineContext>
+namespace StorkStudios.CoreNest
 {
-    // Coroutine context that is always active
-    // Currently does nothing else
+    public class ActiveCoroutineContext : PersistentSingleton<ActiveCoroutineContext>
+    {
+        // Coroutine context that is always active
+        // Currently does nothing else
+    }
 }

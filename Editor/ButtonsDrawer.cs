@@ -3,43 +3,46 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-public class ButtonsDrawer
+namespace StorkStudios.CoreNest
 {
-    private readonly List<(MethodInfo method, InvokeButtonAttribute attribute)> buttons = new List<(MethodInfo method, InvokeButtonAttribute attribute)>();
-
-    public ButtonsDrawer(Object target)
+    public class ButtonsDrawer
     {
-        BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-        MethodInfo[] methods = target.GetType().GetMethods(bindingFlags);
+        private readonly List<(MethodInfo method, InvokeButtonAttribute attribute)> buttons = new List<(MethodInfo method, InvokeButtonAttribute attribute)>();
 
-        foreach (MethodInfo method in methods)
+        public ButtonsDrawer(Object target)
         {
-            InvokeButtonAttribute attribute = method.GetCustomAttribute<InvokeButtonAttribute>();
+            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+            MethodInfo[] methods = target.GetType().GetMethods(bindingFlags);
 
-            if (attribute == null)
+            foreach (MethodInfo method in methods)
             {
-                continue;
-            }
+                InvokeButtonAttribute attribute = method.GetCustomAttribute<InvokeButtonAttribute>();
 
-            buttons.Add((method, attribute));
-        }
-    }
-
-    public void Draw(IEnumerable<Object> targets)
-    {
-        foreach ((MethodInfo method, InvokeButtonAttribute attribute) in buttons)
-        {
-            if (method.GetParameters().Length > 0)
-            {
-                EditorGUILayout.LabelField($"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
-                continue;
-            }
-
-            if (GUILayout.Button(attribute.GetNameForMethod(method)))
-            {
-                foreach (Object target in targets)
+                if (attribute == null)
                 {
-                    method.Invoke(target, null);
+                    continue;
+                }
+
+                buttons.Add((method, attribute));
+            }
+        }
+
+        public void Draw(IEnumerable<Object> targets)
+        {
+            foreach ((MethodInfo method, InvokeButtonAttribute attribute) in buttons)
+            {
+                if (method.GetParameters().Length > 0)
+                {
+                    EditorGUILayout.LabelField($"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
+                    continue;
+                }
+
+                if (GUILayout.Button(attribute.GetNameForMethod(method)))
+                {
+                    foreach (Object target in targets)
+                    {
+                        method.Invoke(target, null);
+                    }
                 }
             }
         }

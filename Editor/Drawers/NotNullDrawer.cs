@@ -1,26 +1,27 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(NotNullAttribute))]
-public class NotNullDrawer : PropertyDrawer
+namespace StorkStudios.CoreNest
 {
-    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+    [CustomPropertyDrawer(typeof(NotNullAttribute))]
+    public class NotNullDrawer : PropertyDrawer
     {
-        return EditorGUI.GetPropertyHeight(property, label, property.isExpanded);
-    }
-
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {
-        GUIContent icon = EditorGUIUtility.IconContent("console.erroricon");
-
-        EditorGUI.PropertyField(position, property, label, property.isExpanded);
-
-        position.x -= 18;
-        if (property.objectReferenceValue == null)
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            GUI.Label(position, icon);
+            return EditorGUI.GetPropertyHeight(property, label, property.isExpanded);
+        }
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            GUIContent icon = EditorGUIUtility.IconContent("console.erroricon");
+
+            EditorGUI.PropertyField(position, property, label, property.isExpanded);
+
+            position.x -= 18;
+            if (property.objectReferenceValue == null)
+            {
+                GUI.Label(position, icon);
+            }
         }
     }
 }

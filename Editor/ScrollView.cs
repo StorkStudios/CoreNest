@@ -1,19 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class ScrollView
+namespace StorkStudios.CoreNest
 {
-    private Vector2 scrollPosition;
-
-    public void Begin()
+    public class ScrollView
     {
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-    }
+        private Vector2 scrollPosition;
 
-    public void End()
-    {
-        EditorGUILayout.EndScrollView();
+        public void Begin()
+        {
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+        }
+
+        public void End()
+        {
+            EditorGUILayout.EndScrollView();
+        }
     }
 }
