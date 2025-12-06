@@ -36,12 +36,12 @@ namespace StorkStudios.CoreNest
             {
                 if (iterator.propertyPath == "m_Script")
                 {
-                    using (new EditorGUI.DisabledScope())
+                    using (new EditorGUI.DisabledScope(true))
                     {
                         float height = EditorGUI.GetPropertyHeight(iterator);
                         position.yMax = position.yMin + height;
                         EditorGUI.PropertyField(position, iterator, true);
-                        position.yMin += height + EditorGUIUtility.standardVerticalSpacing;
+                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
                     }
                     enterChildren = false;
                 }
@@ -49,7 +49,7 @@ namespace StorkStudios.CoreNest
                 {
                     FieldInfo field = iterator.GetFieldInfo();
                     FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
-                    
+
                     if (foldout != null)
                     {
                         if (!drawnFoldouts.Contains(foldout.Id))
@@ -63,7 +63,7 @@ namespace StorkStudios.CoreNest
                         float height = EditorGUI.GetPropertyHeight(iterator);
                         position.yMax = position.yMin + height;
                         EditorGUI.PropertyField(position, iterator, true);
-                        position.yMin += height + EditorGUIUtility.standardVerticalSpacing;
+                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
                     }
                 }
             }
@@ -120,11 +120,33 @@ namespace StorkStudios.CoreNest
         public float GetHeight()
         {
             SerializedProperty iterator = serializedObject.GetIterator();
+            drawnFoldouts.Clear();
             bool enterChildren = true;
             float result = 0;
             while (iterator.NextVisible(enterChildren))
             {
-                result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+                bool wouldDraw = true;
+
+                FieldInfo field = iterator.GetFieldInfo();
+
+                if (field != null)
+                {
+                    FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
+                    if (foldout != null)
+                    {
+                        if (!drawnFoldouts.Contains(foldout.Id))
+                        {
+                            drawnFoldouts.Add(foldout.Id);
+                            result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                        }
+                        wouldDraw = foldoutStates.TryGetValue(foldout.Id, out bool value) && value;
+                    }
+                }
+
+                if (wouldDraw)
+                {
+                    result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+                }
 
                 enterChildren = false;
             }
