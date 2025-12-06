@@ -37,7 +37,7 @@ namespace StorkStudios.CoreNest
             {
                 EditorGUI.indentLevel++;
 
-                editor ??= new InlineEditor(property.objectReferenceValue);
+                editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
                 editor.DrawInspector(editorRect);
 
                 EditorGUI.indentLevel--;

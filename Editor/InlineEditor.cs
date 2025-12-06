@@ -5,19 +5,25 @@ namespace StorkStudios.CoreNest
 {
     public class InlineEditor
     {
-        private readonly SerializedObject obj;
+        private readonly SerializedObject serializedObject;
 
-        public InlineEditor(Object objectToDraw)
+        public InlineEditor(SerializedObject objectToDraw)
         {
-            obj = new SerializedObject(objectToDraw);
+            serializedObject = objectToDraw;
+        }
+
+        public bool DrawInspector()
+        {
+            Rect rect = EditorGUILayout.GetControlRect(GUILayout.Height(GetHeight()));
+            return DrawInspector(rect);
         }
 
         // Copied from unity source code
-        public void DrawInspector(Rect position)
+        public bool DrawInspector(Rect position)
         {
             EditorGUI.BeginChangeCheck();
-            obj.UpdateIfRequiredOrScript();
-            SerializedProperty iterator = obj.GetIterator();
+            serializedObject.UpdateIfRequiredOrScript();
+            SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
             while (iterator.NextVisible(enterChildren))
             {
@@ -32,13 +38,18 @@ namespace StorkStudios.CoreNest
                 enterChildren = false;
             }
 
-            obj.ApplyModifiedProperties();
-            EditorGUI.EndChangeCheck();
+            bool changed = EditorGUI.EndChangeCheck();
+            if (changed)
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            return changed;
         }
 
         public float GetHeight()
         {
-            SerializedProperty iterator = obj.GetIterator();
+            SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
             float result = 0;
             while (iterator.NextVisible(enterChildren))

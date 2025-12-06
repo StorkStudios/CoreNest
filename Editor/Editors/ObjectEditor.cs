@@ -7,16 +7,18 @@ namespace StorkStudios.CoreNest
     [CustomEditor(typeof(Object), true)]
     public class ObjectEditor : Editor
     {
+        private InlineEditor inlineEditor;
         private ButtonsDrawer buttonsDrawer;
 
         private void OnEnable()
         {
+            inlineEditor = new InlineEditor(serializedObject);
             buttonsDrawer = new ButtonsDrawer(target);
         }
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+            inlineEditor.DrawInspector();
             buttonsDrawer.Draw(targets);
         }
     }
