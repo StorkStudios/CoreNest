@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
+using static UnityEngine.GraphicsBuffer;
 
 namespace StorkStudios.CoreNest
 {
@@ -13,9 +16,14 @@ namespace StorkStudios.CoreNest
 
         private readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
 
+        private readonly List<MethodInfo> methods;
+
         public InlineEditor(SerializedObject objectToDraw)
         {
             serializedObject = objectToDraw;
+
+            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+            methods = serializedObject.targetObject.GetType().GetMethods(bindingFlags).Where(e => e.GetCustomAttribute<InvokeButtonAttribute>() != null).ToList();
         }
 
         public bool DrawInspector()
@@ -24,7 +32,6 @@ namespace StorkStudios.CoreNest
             return DrawInspector(rect);
         }
 
-        // Copied from unity source code
         public bool DrawInspector(Rect position)
         {
             EditorGUI.BeginChangeCheck();
@@ -65,6 +72,45 @@ namespace StorkStudios.CoreNest
                         EditorGUI.PropertyField(position, iterator, true);
                         position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
                     }
+                }
+            }
+
+            foreach (MethodInfo method in methods)
+            {
+                FoldoutGroupAttribute foldout = method.GetCustomAttribute<FoldoutGroupAttribute>();
+
+                if (foldout != null)
+                {
+                    if (!drawnFoldouts.Contains(foldout.Id))
+                    {
+                        drawnFoldouts.Add(foldout.Id);
+                        position = DrawFoldoutGroupButtons(position, foldout.Id, true);
+                    }
+                }
+                else
+                {
+                    float height = EditorGUIUtility.singleLineHeight;
+
+                    //TODO: support parameters
+                    if (method.GetParameters().Length > 0)
+                    {
+                        position.yMax = position.yMin + height;
+                        EditorGUI.LabelField(position, $"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
+                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                        continue;
+                    }
+
+                    InvokeButtonAttribute invokeButton = method.GetCustomAttribute<InvokeButtonAttribute>();
+
+                    position.yMax = position.yMin + height;
+                    if (GUI.Button(position, invokeButton.GetNameForMethod(method)))
+                    {
+                        foreach (Object target in serializedObject.targetObjects)
+                        {
+                            method.Invoke(target, null);
+                        }
+                    }
+                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
                 }
             }
 
@@ -114,6 +160,60 @@ namespace StorkStudios.CoreNest
 
                 } while (property.NextVisible(false));
             }
+            return DrawFoldoutGroupButtons(position, id, false);
+        }
+
+        private Rect DrawFoldoutGroupButtons(Rect position, string id, bool drawHeader)
+        {
+            IEnumerable<MethodInfo> methodsWithFoldout = methods.Where(e => e.GetCustomAttribute<FoldoutGroupAttribute>() != null);
+
+            if (!foldoutStates.ContainsKey(id))
+            {
+                foldoutStates[id] = false;
+            }
+
+            if (drawHeader)
+            {
+                string header = methodsWithFoldout.First(e => e.GetCustomAttribute<FoldoutGroupAttribute>().Id == id).GetCustomAttribute<FoldoutGroupAttribute>().Header;
+
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                foldoutStates[id] = EditorGUI.Foldout(position, foldoutStates[id], header, true);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            if (!foldoutStates[id])
+            {
+                return position;
+            }
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                foreach (MethodInfo method in methodsWithFoldout.Where(e => e.GetCustomAttribute<FoldoutGroupAttribute>().Id == id))
+                {
+                    float height = EditorGUIUtility.singleLineHeight;
+
+                    //TODO: support parameters
+                    if (method.GetParameters().Length > 0)
+                    {
+                        position.yMax = position.yMin + height;
+                        EditorGUI.LabelField(position, $"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
+                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                        continue;
+                    }
+
+                    InvokeButtonAttribute invokeButton = method.GetCustomAttribute<InvokeButtonAttribute>();
+
+                    position.yMax = position.yMin + height;
+                    if (GUI.Button(position, invokeButton.GetNameForMethod(method)))
+                    {
+                        foreach (Object target in serializedObject.targetObjects)
+                        {
+                            method.Invoke(target, null);
+                        }
+                    }
+                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                }
+            }
             return position;
         }
 
@@ -150,6 +250,35 @@ namespace StorkStudios.CoreNest
 
                 enterChildren = false;
             }
+
+            foreach (MethodInfo method in methods)
+            {
+                bool wouldDraw = true;
+
+                FoldoutGroupAttribute foldout = method.GetCustomAttribute<FoldoutGroupAttribute>();
+
+                if (foldout != null)
+                {
+                    if (!drawnFoldouts.Contains(foldout.Id))
+                    {
+                        drawnFoldouts.Add(foldout.Id);
+                        result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    }
+                    wouldDraw = foldoutStates.TryGetValue(foldout.Id, out bool value) && value;
+                }
+
+                float height = EditorGUIUtility.singleLineHeight;
+                if (method.GetParameters().Length > 0)
+                {
+                    //TODO: support parameters
+                }
+
+                if (wouldDraw)
+                {
+                    result += height + EditorGUIUtility.standardVerticalSpacing;
+                }
+            }
+
             return result;
         }
     }
