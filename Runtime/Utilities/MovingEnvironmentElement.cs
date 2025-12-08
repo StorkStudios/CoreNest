@@ -31,7 +31,8 @@ namespace StorkStudios.CoreNest
             MovingToB,
             MovingToA,
             A,
-            B
+            B,
+            None
         }
 
         [SerializeField]
@@ -45,12 +46,17 @@ namespace StorkStudios.CoreNest
         private float movementTime;
         [SerializeField]
         private MovingElementState defaultState;
+
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent arrivedAtA;
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent arrivedAtB;
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent startedMovingToA;
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent startedMovingToB;
 
