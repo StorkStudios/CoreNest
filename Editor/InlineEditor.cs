@@ -90,7 +90,7 @@ namespace StorkStudios.CoreNest
             }
 
             position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-            foldoutStates[id] = EditorGUI.Foldout(position, foldoutStates[id], header);
+            foldoutStates[id] = EditorGUI.Foldout(position, foldoutStates[id], header, true);
             position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
 
             if (!foldoutStates[id])

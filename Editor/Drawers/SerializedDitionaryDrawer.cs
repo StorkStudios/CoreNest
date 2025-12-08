@@ -31,7 +31,7 @@ namespace StorkStudios.CoreNest
             labelRect.height = EditorGUIUtility.singleLineHeight;
             DrawHeaderCallback(list, property.displayName, labelRect);
 
-            position.yMin += EditorGUIUtility.singleLineHeight;
+            position.yMin += labelRect.height + EditorGUIUtility.standardVerticalSpacing;
 
             if (list.serializedProperty.isExpanded)
             {
@@ -90,7 +90,32 @@ namespace StorkStudios.CoreNest
 
         private void DrawHeaderCallback(ReorderableList list, string displayName, Rect rect)
         {
-            list.serializedProperty.isExpanded = EditorGUI.Foldout(rect, list.serializedProperty.isExpanded, displayName);
+            GUIStyle style = GUIStyles.ListFoldout;
+            
+            Rect backgroundRect = rect;
+            backgroundRect.xMin = backgroundRect.xMin - style.padding.left + style.margin.left;
+            backgroundRect.x += style.margin.right;
+            backgroundRect.xMin -= 1;
+            if (backgroundRect.Contains(Event.current.mousePosition))
+            {
+                EditorGUI.DrawRect(backgroundRect, GUIStyles.HoverBackgroundColor);
+            }
+
+            // hack to make the background hover effect update properly
+            // OnGUI doesn't get called on MouseMove event so the background wouldn't update
+            // the performance should be the same as calling Repaint in an Editor class
+            if (Event.current.type == EventType.Repaint)
+            {
+                GUI.changed = true;
+            }
+
+            list.serializedProperty.isExpanded = EditorGUI.Foldout(rect, list.serializedProperty.isExpanded, displayName, true, style);
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                rect.xMin = rect.xMax - 48;
+                EditorGUI.DelayedIntField(rect, list.count);
+            }
         }
 
         private void DrawElementCallback(ReorderableList list, Rect rect, int index, bool isActive, bool isFocused)
