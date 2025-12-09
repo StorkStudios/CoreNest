@@ -15,6 +15,7 @@ namespace StorkStudios.CoreNest
         private readonly HashSet<string> drawnFoldouts = new HashSet<string>();
 
         private readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
+        private readonly Dictionary<MethodInfo, bool> methodFoldoutStates = new Dictionary<MethodInfo, bool>();
 
         private readonly List<MethodInfo> methods;
 
@@ -89,28 +90,7 @@ namespace StorkStudios.CoreNest
                 }
                 else
                 {
-                    float height = EditorGUIUtility.singleLineHeight;
-
-                    //TODO: support parameters
-                    if (method.GetParameters().Length > 0)
-                    {
-                        position.yMax = position.yMin + height;
-                        EditorGUI.LabelField(position, $"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
-                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-                        continue;
-                    }
-
-                    InvokeButtonAttribute invokeButton = method.GetCustomAttribute<InvokeButtonAttribute>();
-
-                    position.yMax = position.yMin + height;
-                    if (GUI.Button(position, invokeButton.GetNameForMethod(method)))
-                    {
-                        foreach (Object target in serializedObject.targetObjects)
-                        {
-                            method.Invoke(target, null);
-                        }
-                    }
-                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                    position = DrawInvokeButton(position, method);
                 }
             }
 
@@ -190,30 +170,66 @@ namespace StorkStudios.CoreNest
             {
                 foreach (MethodInfo method in methodsWithFoldout.Where(e => e.GetCustomAttribute<FoldoutGroupAttribute>().Id == id))
                 {
-                    float height = EditorGUIUtility.singleLineHeight;
-
-                    //TODO: support parameters
-                    if (method.GetParameters().Length > 0)
-                    {
-                        position.yMax = position.yMin + height;
-                        EditorGUI.LabelField(position, $"'{method.Name}' has parameters. It isn't compatible with Invoke Button");
-                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-                        continue;
-                    }
-
-                    InvokeButtonAttribute invokeButton = method.GetCustomAttribute<InvokeButtonAttribute>();
-
-                    position.yMax = position.yMin + height;
-                    if (GUI.Button(position, invokeButton.GetNameForMethod(method)))
-                    {
-                        foreach (Object target in serializedObject.targetObjects)
-                        {
-                            method.Invoke(target, null);
-                        }
-                    }
-                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                    position = DrawInvokeButton(position, method);
                 }
             }
+            return position;
+        }
+
+        private Rect DrawInvokeButton(Rect position, MethodInfo method)
+        {
+            InvokeButtonAttribute invokeButton = method.GetCustomAttribute<InvokeButtonAttribute>();
+
+            bool pressed = false;
+
+            if (method.GetParameters().Length > 0)
+            {
+                if (!methodFoldoutStates.ContainsKey(method))
+                {
+                    methodFoldoutStates[method] = false;
+                }
+
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+
+                Rect labelRect = position;
+                labelRect.xMax -= (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
+                methodFoldoutStates[method] = EditorGUI.Foldout(labelRect, methodFoldoutStates[method], $"Function: {invokeButton.GetNameForMethod(method)}", true);
+
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    Rect buttonRect = position;
+                    buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
+                    pressed = GUI.Button(buttonRect, "Invoke");
+                }
+
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+
+                if (methodFoldoutStates[method])
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        //TODO: methods with parameters
+                        position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                        EditorGUI.LabelField(position, "Methods with parameters are not supported yet.");
+                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                    }
+                }
+            }
+            else
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                pressed = GUI.Button(position, invokeButton.GetNameForMethod(method));
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+                
+            if (pressed)
+            {
+                foreach (Object target in serializedObject.targetObjects)
+                {
+                    method.Invoke(target, null);
+                }
+            }
+            
             return position;
         }
 
@@ -267,15 +283,15 @@ namespace StorkStudios.CoreNest
                     wouldDraw = foldoutStates.TryGetValue(foldout.Id, out bool value) && value;
                 }
 
-                float height = EditorGUIUtility.singleLineHeight;
-                if (method.GetParameters().Length > 0)
-                {
-                    //TODO: support parameters
-                }
-
                 if (wouldDraw)
                 {
-                    result += height + EditorGUIUtility.standardVerticalSpacing;
+                    result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+                    if (methodFoldoutStates.TryGetValue(method, out bool visible) && visible)
+                    {
+                        //TODO: methods with parameters
+                        result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    }
                 }
             }
 
