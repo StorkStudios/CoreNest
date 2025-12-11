@@ -17,6 +17,11 @@ namespace StorkStudios.CoreNest
 
         public bool? ShouldShow(object target)
         {
+            if (target == null)
+            {
+                return null;
+            }
+
             Type type = target.GetType();
             BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             MemberInfo member = type.GetMember(ConditionName, bindingFlags).FirstOrDefault();

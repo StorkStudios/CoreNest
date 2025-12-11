@@ -87,7 +87,15 @@ namespace StorkStudios.CoreNest
                 }
                 else
                 {
-                    position = DrawInvokeButton(position, method);
+                    ShowIfAttribute showIf = method.GetCustomAttribute<ShowIfAttribute>();
+                    if (showIf != null)
+                    {
+                        position = ShowIfDrawer.Draw(position, method, showIf, serializedObject.targetObjects, position => DrawInvokeButton(position, method));
+                    }
+                    else
+                    {
+                        position = DrawInvokeButton(position, method);
+                    }
                 }
             }
 
@@ -167,7 +175,15 @@ namespace StorkStudios.CoreNest
             {
                 foreach (MethodInfo method in methodsWithFoldout.Where(e => e.GetCustomAttribute<FoldoutGroupAttribute>().Id == id))
                 {
-                    position = DrawInvokeButton(position, method);
+                    ShowIfAttribute showIf = method.GetCustomAttribute<ShowIfAttribute>();
+                    if (showIf != null)
+                    {
+                        position = ShowIfDrawer.Draw(position, method, showIf, serializedObject.targetObjects, position => DrawInvokeButton(position, method));
+                    }
+                    else
+                    {
+                        position = DrawInvokeButton(position, method);
+                    }
                 }
             }
             return position;
@@ -267,6 +283,7 @@ namespace StorkStudios.CoreNest
             foreach (MethodInfo method in methods)
             {
                 bool wouldDraw = true;
+                float height = 0;
 
                 FoldoutGroupAttribute foldout = method.GetCustomAttribute<FoldoutGroupAttribute>();
 
@@ -275,21 +292,30 @@ namespace StorkStudios.CoreNest
                     if (!drawnFoldouts.Contains(foldout.Id))
                     {
                         drawnFoldouts.Add(foldout.Id);
-                        result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                        height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                     }
                     wouldDraw = foldoutStates.TryGetValue(foldout.Id, out bool value) && value;
                 }
 
                 if (wouldDraw)
                 {
-                    result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                     if (methodFoldoutStates.TryGetValue(method, out bool visible) && visible)
                     {
                         //TODO: methods with parameters
-                        result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                        height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                     }
                 }
+
+                ShowIfAttribute showIf = method.GetCustomAttribute<ShowIfAttribute>();
+
+                if (showIf != null)
+                {
+                    height = ShowIfDrawer.GetHeight(height, showIf, serializedObject.targetObjects);
+                }
+
+                result += height;
             }
 
             return result;

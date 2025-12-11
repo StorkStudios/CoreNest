@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+
+using UObject = UnityEngine.Object;
 
 namespace StorkStudios.CoreNest
 {
@@ -14,23 +18,37 @@ namespace StorkStudios.CoreNest
         {
             showIfAttribute ??= (ShowIfAttribute)attribute;
 
-            Object[] targets = property.serializedObject.targetObjects;
-            bool? visible = showIfAttribute.ShouldShow(targets[0]);
+            UObject[] targets = property.serializedObject.targetObjects;
+
+            Draw(position, property.GetFieldInfo(), showIfAttribute, targets,
+                pos =>
+                {
+                    EditorGUI.PropertyField(pos, property, label);
+                    return pos;
+                });
+        }
+
+        public static Rect Draw(Rect position, MemberInfo member, ShowIfAttribute attribute, IEnumerable<UObject> targets, Func<Rect, Rect> drawFunction)
+        {
+            bool? visible = attribute.ShouldShow(targets.First());
             if (!visible.HasValue)
             {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+
                 string message = "Show if can only reference bool field, property or parameterless method.";
                 GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
                 content.text = message;
-                FieldInfo field = property.GetFieldInfo();
-                content.tooltip = $"{field.DeclaringType.Name}.{field.Name}";
+                content.tooltip = $"{member.DeclaringType.Name}.{member.Name}";
                 EditorGUI.LabelField(position, content);
-                return;
+
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                return position;
             }
-            if (targets.All(e => showIfAttribute.ShouldShow(e).Value == visible.Value))
+            if (targets.All(e => attribute.ShouldShow(e).Value == visible.Value))
             {
                 if (visible.Value)
                 {
-                    EditorGUI.PropertyField(position, property);
+                    return drawFunction.Invoke(position);
                 }
             }
             else
@@ -38,27 +56,33 @@ namespace StorkStudios.CoreNest
                 using (new EditorGUI.DisabledScope(true))
                 using (new EditorGUI.MixedValueScope(true))
                 {
-                    EditorGUI.PropertyField(position, property);
+                    return drawFunction.Invoke(position);
                 }
             }
-
+            return position;
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             showIfAttribute ??= (ShowIfAttribute)attribute;
 
-            Object[] targets = property.serializedObject.targetObjects;
-            bool? visible = showIfAttribute.ShouldShow(targets[0]);
+            UObject[] targets = property.serializedObject.targetObjects;
+
+            return GetHeight(EditorGUI.GetPropertyHeight(property), showIfAttribute, targets);
+        }
+
+        public static float GetHeight(float normalHeight, ShowIfAttribute attribute, IEnumerable<UObject> targets)
+        {
+            bool? visible = attribute.ShouldShow(targets.First());
             if (!visible.HasValue)
             {
                 return EditorGUIUtility.singleLineHeight;
             }
-            if (targets.All(e => showIfAttribute.ShouldShow(e).Value == visible.Value))
+            if (targets.All(e => attribute.ShouldShow(e).Value == visible.Value))
             {
-                return visible.Value ? EditorGUI.GetPropertyHeight(property) : 0;
+                return visible.Value ? normalHeight : 0;
             }
-            return EditorGUI.GetPropertyHeight(property);
+            return normalHeight;
         }
     }
 }
