@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,7 +13,12 @@ namespace StorkStudios.CoreNest
         {
             if (property.propertyType != SerializedPropertyType.ObjectReference)
             {
-                base.OnGUI(position, property, label);
+                string message = "Edit object in inspector can only be used with UnityEngine.Object";
+                GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
+                content.text = message;
+                FieldInfo field = property.GetFieldInfo();
+                content.tooltip = $"{field.DeclaringType.Name}.{field.Name}";
+                EditorGUI.LabelField(position, content);
                 return;
             }
 
@@ -33,11 +39,12 @@ namespace StorkStudios.CoreNest
             Rect editorRect = position;
             editorRect.yMin += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
+            editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
+
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
 
-                editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
                 editor.DrawInspector(editorRect);
 
                 EditorGUI.indentLevel--;
@@ -46,11 +53,19 @@ namespace StorkStudios.CoreNest
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
+            if (property.propertyType != SerializedPropertyType.ObjectReference)
+            {
+                return EditorGUIUtility.singleLineHeight;
+            }
+
+            editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
+
+            float height = EditorGUIUtility.singleLineHeight;
             if (property.isExpanded)
             {
-                return EditorGUIUtility.singleLineHeight + (editor != null ? editor.GetHeight() + EditorGUIUtility.standardVerticalSpacing : 0);
+                height += EditorGUIUtility.standardVerticalSpacing + editor.GetHeight();
             }
-            return EditorGUIUtility.singleLineHeight;
+            return height;
         }
     }
 }

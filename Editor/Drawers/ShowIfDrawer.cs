@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,7 +19,11 @@ namespace StorkStudios.CoreNest
             if (!visible.HasValue)
             {
                 string message = "Show if can only reference bool field, property or parameterless method.";
-                EditorGUI.LabelField(position, new GUIContent(message, message));
+                GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
+                content.text = message;
+                FieldInfo field = property.GetFieldInfo();
+                content.tooltip = $"{field.DeclaringType.Name}.{field.Name}";
+                EditorGUI.LabelField(position, content);
                 return;
             }
             if (targets.All(e => showIfAttribute.ShouldShow(e).Value == visible.Value))
