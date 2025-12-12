@@ -68,7 +68,11 @@ namespace StorkStudios.CoreNest
                         float height = EditorGUI.GetPropertyHeight(iterator);
                         position.yMax = position.yMin + height;
                         EditorGUI.PropertyField(position, iterator, true);
-                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                        position.yMin = position.yMax;
+                        if (height > 0)
+                        {
+                            position.yMin += EditorGUIUtility.standardVerticalSpacing;
+                        }
                     }
                 }
             }
@@ -139,9 +143,14 @@ namespace StorkStudios.CoreNest
                         continue;
                     }
 
-                    position.yMax = position.yMin + EditorGUI.GetPropertyHeight(property);
+                    float height = EditorGUI.GetPropertyHeight(property);
+                    position.yMax = position.yMin + height;
                     EditorGUI.PropertyField(position, property, true);
-                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                    position.yMin = position.yMax;
+                    if (height > 0)
+                    {
+                         position.yMin += EditorGUIUtility.standardVerticalSpacing;
+                    }
 
                 } while (property.NextVisible(false));
             }
@@ -274,7 +283,12 @@ namespace StorkStudios.CoreNest
 
                 if (wouldDraw)
                 {
-                    result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+                    float height = EditorGUI.GetPropertyHeight(iterator);
+                    result += height;
+                    if (height > 0)
+                    {
+                        result += EditorGUIUtility.standardVerticalSpacing;
+                    }
                 }
 
                 enterChildren = false;
