@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace StorkStudios.CoreNest
 {
+    /// <summary>
+    /// Class implementing the drawing of an enchanced editor in the specified area.
+    /// </summary>
     public class InlineEditor
     {
         private readonly SerializedObject serializedObject;

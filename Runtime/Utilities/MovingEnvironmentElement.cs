@@ -4,7 +4,10 @@ using UnityEngine.Events;
 
 namespace StorkStudios.CoreNest
 {
-    [DisallowMultipleComponent]
+    /// <summary>
+    /// Controls the movement of a target Transform between two defined points in the local space
+    /// of this component.
+    /// </summary>
     public class MovingEnvironmentElement : MonoBehaviour
     {
         [System.Serializable]

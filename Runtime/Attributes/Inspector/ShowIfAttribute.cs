@@ -5,11 +5,19 @@ using UnityEngine;
 
 namespace StorkStudios.CoreNest
 {
+    /// <summary>
+    /// Specifies that a field or method should be conditionally displayed in the Unity Inspector based on the value of
+    /// a specified boolean member.
+    /// </summary>
+    /// <remarks>
+    /// The condition can be a field, property, or method (with no parameters) that returns a boolean value.
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false)]
     public class ShowIfAttribute : PropertyAttribute
     {
         public string ConditionName { get; private set; }
 
+        /// <param name="conditionName">Name of a field, property, or method (with no parameters) that returns a boolean value.</param>
         public ShowIfAttribute(string conditionName)
         {
             ConditionName = conditionName;
