@@ -20,6 +20,12 @@ namespace StorkStudios.CoreNest
         {
             serializedObject = objectToDraw;
 
+            // This can happen when drawing destroyed scripts
+            if (serializedObject.targetObject == null)
+            {
+                return;
+            }
+
             BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             methods = serializedObject.targetObject.GetType().GetMethods(bindingFlags).Where(e => e.GetCustomAttribute<InvokeButtonAttribute>() != null).ToList();
         }
@@ -36,43 +42,46 @@ namespace StorkStudios.CoreNest
             serializedObject.UpdateIfRequiredOrScript();
             drawnFoldouts.Clear();
             SerializedProperty iterator = serializedObject.GetIterator();
-            bool enterChildren = true;
-            while (iterator.NextVisible(enterChildren))
+
+            // m_Script field
+            if (iterator.NextVisible(true))
             {
-                if (iterator.propertyPath == "m_Script")
+                using (new EditorGUI.DisabledScope(true))
                 {
-                    using (new EditorGUI.DisabledScope(true))
+                    float height = EditorGUI.GetPropertyHeight(iterator);
+                    position.yMax = position.yMin + height;
+                    EditorGUI.PropertyField(position, iterator, true);
+                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                }
+            }
+
+            if (serializedObject.targetObject == null)
+            {
+                return false;
+            }
+
+            while (iterator.NextVisible(false))
+            {
+                FieldInfo field = iterator.GetFieldInfo();
+                FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
+
+                if (foldout != null)
+                {
+                    if (!drawnFoldouts.Contains(foldout.Id))
                     {
-                        float height = EditorGUI.GetPropertyHeight(iterator);
-                        position.yMax = position.yMin + height;
-                        EditorGUI.PropertyField(position, iterator, true);
-                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                        drawnFoldouts.Add(foldout.Id);
+                        position = DrawFoldoutGroup(iterator, position);
                     }
-                    enterChildren = false;
                 }
                 else
                 {
-                    FieldInfo field = iterator.GetFieldInfo();
-                    FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
-
-                    if (foldout != null)
+                    float height = EditorGUI.GetPropertyHeight(iterator);
+                    position.yMax = position.yMin + height;
+                    EditorGUI.PropertyField(position, iterator, true);
+                    position.yMin = position.yMax;
+                    if (height > 0)
                     {
-                        if (!drawnFoldouts.Contains(foldout.Id))
-                        {
-                            drawnFoldouts.Add(foldout.Id);
-                            position = DrawFoldoutGroup(iterator, position);
-                        }
-                    }
-                    else
-                    {
-                        float height = EditorGUI.GetPropertyHeight(iterator);
-                        position.yMax = position.yMin + height;
-                        EditorGUI.PropertyField(position, iterator, true);
-                        position.yMin = position.yMax;
-                        if (height > 0)
-                        {
-                            position.yMin += EditorGUIUtility.standardVerticalSpacing;
-                        }
+                        position.yMin += EditorGUIUtility.standardVerticalSpacing;
                     }
                 }
             }
@@ -259,26 +268,34 @@ namespace StorkStudios.CoreNest
         {
             SerializedProperty iterator = serializedObject.GetIterator();
             drawnFoldouts.Clear();
-            bool enterChildren = true;
             float result = 0;
-            while (iterator.NextVisible(enterChildren))
+
+            // m_Script field
+            if (iterator.NextVisible(true))
+            {
+                result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+            }
+
+            if (serializedObject.targetObject == null)
+            {
+                return result;
+            }
+
+            while (iterator.NextVisible(false))
             {
                 bool wouldDraw = true;
 
                 FieldInfo field = iterator.GetFieldInfo();
+                FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
 
-                if (field != null)
+                if (foldout != null)
                 {
-                    FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
-                    if (foldout != null)
+                    if (!drawnFoldouts.Contains(foldout.Id))
                     {
-                        if (!drawnFoldouts.Contains(foldout.Id))
-                        {
-                            drawnFoldouts.Add(foldout.Id);
-                            result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                        }
-                        wouldDraw = foldoutStates.TryGetValue(foldout.Id, out bool value) && value;
+                        drawnFoldouts.Add(foldout.Id);
+                        result += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                     }
+                    wouldDraw = foldoutStates.TryGetValue(foldout.Id, out bool value) && value;
                 }
 
                 if (wouldDraw)
@@ -290,8 +307,6 @@ namespace StorkStudios.CoreNest
                         result += EditorGUIUtility.standardVerticalSpacing;
                     }
                 }
-
-                enterChildren = false;
             }
 
             foreach (MethodInfo method in methods)
