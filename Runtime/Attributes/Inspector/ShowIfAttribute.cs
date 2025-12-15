@@ -20,6 +20,7 @@ namespace StorkStudios.CoreNest
         /// <param name="conditionName">Name of a field, property, or method (with no parameters) that returns a boolean value.</param>
         public ShowIfAttribute(string conditionName)
         {
+            order = -1;
             ConditionName = conditionName;
         }
 

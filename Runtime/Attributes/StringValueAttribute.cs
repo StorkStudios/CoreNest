@@ -3,6 +3,10 @@ using System.Reflection;
 
 namespace StorkStudios.CoreNest
 {
+    /// <summary>
+    /// Specifies a string value associated with a field. Used to provide a custom string representation for
+    /// enumeration members.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
     public class StringValueAttribute : Attribute
     {
@@ -21,9 +25,9 @@ namespace StorkStudios.CoreNest
             Type type = value.GetType();
             FieldInfo fieldInfo = type.GetField(value.ToString());
 
-            StringValueAttribute[] attribs = fieldInfo.GetCustomAttributes(typeof(StringValueAttribute), false) as StringValueAttribute[];
+            StringValueAttribute attribute = fieldInfo.GetCustomAttribute<StringValueAttribute>(false);
 
-            return attribs.Length > 0 ? attribs[0].StringValue : null;
+            return attribute?.StringValue;
         }
     }
 }

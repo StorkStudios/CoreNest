@@ -57,6 +57,11 @@ namespace StorkStudios.CoreNest
                     position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
                 }
             }
+            else
+            {
+                // this object has no properties
+                return false;
+            }
 
             if (serializedObject.targetObject == null)
             {
@@ -277,6 +282,11 @@ namespace StorkStudios.CoreNest
             if (iterator.NextVisible(true))
             {
                 result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else
+            {
+                // this object has no properties
+                return result;
             }
 
             if (serializedObject.targetObject == null)
