@@ -6,7 +6,7 @@ using UnityEngine;
 namespace StorkStudios.CoreNest
 {
     [CustomPropertyDrawer(typeof(SerializedSet<>), true)]
-    public class EnumSerializedSetDrawer : StatefulPropertyDrawer<EnumSerializedSetDrawer.State>
+    public class SerializedSetDrawer : StatefulPropertyDrawer<SerializedSetDrawer.State>
     {
         public class State
         {
@@ -113,7 +113,7 @@ namespace StorkStudios.CoreNest
 
             using (new EditorGUI.DisabledScope(true))
             {
-                rect.xMin = rect.xMax - 48;
+                rect.xMin = rect.xMax - GUIStyles.listCountFieldWidth;
                 EditorGUI.DelayedIntField(rect, list.count);
             }
         }

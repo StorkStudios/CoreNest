@@ -113,7 +113,7 @@ namespace StorkStudios.CoreNest
 
             using (new EditorGUI.DisabledScope(true))
             {
-                rect.xMin = rect.xMax - 48;
+                rect.xMin = rect.xMax - GUIStyles.listCountFieldWidth;
                 EditorGUI.DelayedIntField(rect, list.count);
             }
         }

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace StorkStudios.CoreNest
 {
     /// <summary>
-    /// Class implementing the drawing of an enchanced editor in the specified area.
+    /// Class implementing the drawing of an enhanced editor in the specified area.
     /// </summary>
     public class InlineEditor
     {
@@ -133,9 +133,9 @@ namespace StorkStudios.CoreNest
         {
             property = property.Copy();
 
-            FoldoutGroupAttribute foldoutGoup = property.GetFieldInfo().GetCustomAttribute<FoldoutGroupAttribute>();
-            string id = foldoutGoup.Id;
-            string header = foldoutGoup.Header;
+            FoldoutGroupAttribute foldoutGroup = property.GetFieldInfo().GetCustomAttribute<FoldoutGroupAttribute>();
+            string id = foldoutGroup.Id;
+            string header = foldoutGroup.Header;
             if (!foldoutStates.ContainsKey(id))
             {
                 foldoutStates[id] = false;
@@ -154,8 +154,8 @@ namespace StorkStudios.CoreNest
             {
                 do
                 {
-                    foldoutGoup = property.GetFieldInfo().GetCustomAttribute<FoldoutGroupAttribute>();
-                    if (foldoutGoup == null || foldoutGoup.Id != id)
+                    foldoutGroup = property.GetFieldInfo().GetCustomAttribute<FoldoutGroupAttribute>();
+                    if (foldoutGroup == null || foldoutGroup.Id != id)
                     {
                         continue;
                     }
