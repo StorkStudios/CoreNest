@@ -24,6 +24,7 @@ namespace StorkStudios.CoreNest
         private bool showPath = false;
         private bool updateA = false;
         private bool updateB = false;
+        private bool eventsFoldout = false;
 
         private void OnEnable()
         {
@@ -89,10 +90,14 @@ namespace StorkStudios.CoreNest
             EditorGUILayout.PropertyField(movementTimeProperty);
             EditorGUILayout.PropertyField(defaultStateProperty);
 
-            EditorGUILayout.PropertyField(arriveAtAProperty);
-            EditorGUILayout.PropertyField(arriveAtBProperty);
-            EditorGUILayout.PropertyField(startMovingToAProperty);
-            EditorGUILayout.PropertyField(startMovingToBProperty);
+            eventsFoldout = EditorGUILayout.Foldout(eventsFoldout, "Events", true);
+            if (eventsFoldout)
+            {
+                EditorGUILayout.PropertyField(arriveAtAProperty);
+                EditorGUILayout.PropertyField(arriveAtBProperty);
+                EditorGUILayout.PropertyField(startMovingToAProperty);
+                EditorGUILayout.PropertyField(startMovingToBProperty);
+            }
 
             serializedObject.ApplyModifiedProperties();
         }

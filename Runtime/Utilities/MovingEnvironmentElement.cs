@@ -4,7 +4,10 @@ using UnityEngine.Events;
 
 namespace StorkStudios.CoreNest
 {
-    [DisallowMultipleComponent]
+    /// <summary>
+    /// Controls the movement of a target Transform between two defined points in the local space
+    /// of this component.
+    /// </summary>
     public class MovingEnvironmentElement : MonoBehaviour
     {
         [System.Serializable]
@@ -31,7 +34,8 @@ namespace StorkStudios.CoreNest
             MovingToB,
             MovingToA,
             A,
-            B
+            B,
+            None
         }
 
         [SerializeField]
@@ -45,12 +49,17 @@ namespace StorkStudios.CoreNest
         private float movementTime;
         [SerializeField]
         private MovingElementState defaultState;
+
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent arrivedAtA;
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent arrivedAtB;
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent startedMovingToA;
+        [FoldoutGroup("Events")]
         [SerializeField]
         private UnityEvent startedMovingToB;
 

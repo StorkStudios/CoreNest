@@ -3,21 +3,23 @@ using UnityEditor;
 
 namespace StorkStudios.CoreNest
 {
+    /// <summary>
+    /// Provides a custom editor for Unity objects, enabling enhanced inspector functionality.
+    /// </summary>
     [CanEditMultipleObjects]
     [CustomEditor(typeof(Object), true)]
     public class ObjectEditor : Editor
     {
-        private ButtonsDrawer buttonsDrawer;
+        private InlineEditor inlineEditor;
 
         private void OnEnable()
         {
-            buttonsDrawer = new ButtonsDrawer(target);
+            inlineEditor = new InlineEditor(serializedObject);
         }
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-            buttonsDrawer.Draw(targets);
+            inlineEditor.DrawInspector();
         }
     }
 }
