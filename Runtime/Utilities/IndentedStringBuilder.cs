@@ -1,72 +1,75 @@
 using System;
 using System.Text;
 
-public class IndentedStringBuilder
+namespace StorkStudios.CoreNest
 {
-    private class IndentScope : IDisposable
+    public class IndentedStringBuilder
     {
-        private IndentedStringBuilder parent;
-        private int oldIndentLevel;
-
-        private string suffixLine;
-
-        public IndentScope(IndentedStringBuilder parent, int indentLevel, string prefixLine, string suffixLine)
+        private class IndentScope : IDisposable
         {
-            this.parent = parent;
-            this.suffixLine = suffixLine;
-            this.oldIndentLevel = parent.indentLevel;
+            private IndentedStringBuilder parent;
+            private int oldIndentLevel;
 
-            if (prefixLine != null)
+            private string suffixLine;
+
+            public IndentScope(IndentedStringBuilder parent, int indentLevel, string prefixLine, string suffixLine)
             {
-                parent.AppendLine(prefixLine);
+                this.parent = parent;
+                this.suffixLine = suffixLine;
+                this.oldIndentLevel = parent.indentLevel;
+
+                if (prefixLine != null)
+                {
+                    parent.AppendLine(prefixLine);
+                }
+
+                parent.indentLevel = indentLevel;
             }
 
-            parent.indentLevel = indentLevel;
-        }
-
-        public void Dispose()
-        {
-            parent.indentLevel = oldIndentLevel;
-
-            if (suffixLine != null)
+            public void Dispose()
             {
-                parent.AppendLine(suffixLine);
+                parent.indentLevel = oldIndentLevel;
+
+                if (suffixLine != null)
+                {
+                    parent.AppendLine(suffixLine);
+                }
             }
         }
-    }
 
-    public StringBuilder StringBuilder { get; private set; }
+        public StringBuilder StringBuilder { get; private set; }
 
-    public string indentString;
-    public int indentLevel = 0;
+        public string indentString;
+        public int indentLevel = 0;
 
-    public IndentedStringBuilder(StringBuilder stringBuilder, string indentString)
-    {
-        StringBuilder = stringBuilder;
-        this.indentString = indentString;
-    }
-
-    public void AppendLine(string line)
-    {
-        for (int i = 0; i < indentLevel; i++)
+        public IndentedStringBuilder(StringBuilder stringBuilder, string indentString)
         {
-            StringBuilder.Append(indentString);
+            StringBuilder = stringBuilder;
+            this.indentString = indentString;
         }
-        StringBuilder.AppendLine(line);
-    }
 
-    public override string ToString()
-    {
-        return StringBuilder.ToString();
-    }
+        public void AppendLine(string line)
+        {
+            for (int i = 0; i < indentLevel; i++)
+            {
+                StringBuilder.Append(indentString);
+            }
+            StringBuilder.AppendLine(line);
+        }
 
-    public IDisposable BeginIndentScope(int offset)
-    {
-        return new IndentScope(this, indentLevel + offset, null, null);
-    }
+        public override string ToString()
+        {
+            return StringBuilder.ToString();
+        }
 
-    public IDisposable BeginIndentScope(int offset, string prefixLine, string suffixLine)
-    {
-        return new IndentScope(this, indentLevel + offset, prefixLine, suffixLine);
+        public IDisposable BeginIndentScope(int offset)
+        {
+            return new IndentScope(this, indentLevel + offset, null, null);
+        }
+
+        public IDisposable BeginIndentScope(int offset, string prefixLine, string suffixLine)
+        {
+            return new IndentScope(this, indentLevel + offset, prefixLine, suffixLine);
+        }
     }
 }
