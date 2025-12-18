@@ -17,7 +17,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
 ## What's inside?
 
 <ul>
-<li><details><summary>Runtime</summary><ul>
+<li><details open><summary>Runtime</summary><ul>
     <li><details><summary>Attributes</summary><ul>
         <li><details><summary>StringValueAttribute</summary>Used for providing a string value of enumeration members</detials></li>
     </ul></details></li>
@@ -138,7 +138,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         </ul></detials></li>
     </ul></details></li>
 </ul></details></li>
-<li><details><summary>Editor</summary><ul>
+<li><details open><summary>Editor</summary><ul>
     <li><details><summary>Base Classes</summary>Classes to inherit from to create own editor functionalities<ul>
         <li><details><summary>BultInEditorExtensionBase</summary>Editor that extends a specified built in editor (useful when you want to add a button to rect transform's editor). The type name has to match <code>"Namespace.Class.Name, Assembly.Name"</code> eg. <code>"UnityEditor.RectTransformEditor, UnityEditor"</code>. To find them use <a href="https://github.com/Unity-Technologies/UnityCsReference">Unity C# reference source code on GitHub</a></detials></li>
         <li><details><summary>ScriptGeneratorBase</summary>Base class for script generators that handles content change check and file management</detials></li>
