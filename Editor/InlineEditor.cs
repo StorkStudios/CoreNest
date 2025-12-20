@@ -17,7 +17,7 @@ namespace StorkStudios.CoreNest
         private readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
         private readonly Dictionary<MethodInfo, bool> methodFoldoutStates = new Dictionary<MethodInfo, bool>();
 
-        private readonly List<MethodInfo> methods;
+        private readonly List<MethodInfo> methods = new List<MethodInfo>();
 
         public InlineEditor(SerializedObject objectToDraw)
         {
@@ -29,8 +29,28 @@ namespace StorkStudios.CoreNest
                 return;
             }
 
-            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-            methods = serializedObject.targetObject.GetType().GetMethods(bindingFlags).Where(e => e.GetCustomAttribute<InvokeButtonAttribute>() != null).ToList();
+            
+            methods = GetInvokeButtonMethods();
+        }
+
+        private List<MethodInfo> GetInvokeButtonMethods()
+        {
+            const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+            System.Type type = serializedObject.targetObject.GetType();
+            List<MethodInfo> methods = new List<MethodInfo>();
+            while (type != null)
+            {
+                foreach (MethodInfo method in type.GetMethods(bindingFlags).Where(e => e.GetCustomAttribute<InvokeButtonAttribute>() != null).Reverse())
+                {
+                    if (!methods.Contains(method))
+                    {
+                        methods.Add(method);
+                    }
+                }
+                type = type.BaseType;
+            }
+            methods.Reverse();
+            return methods;
         }
 
         public bool DrawInspector()

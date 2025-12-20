@@ -5,7 +5,7 @@ using UnityEditor;
 
 public static class SerializedPropertyExtensions
 {
-    private const BindingFlags unitySerializableFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    private const BindingFlags unitySerializableFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 
     /// <summary>
     /// Retrieves the reflection metadata for the field represented by the specified serialized property.
@@ -14,6 +14,15 @@ public static class SerializedPropertyExtensions
     public static FieldInfo GetFieldInfo(this SerializedProperty property)
     {
         Type type = property.serializedObject.targetObject.GetType();
-        return type.GetField(property.propertyPath, unitySerializableFlags);
+        while (type != null)
+        {
+            FieldInfo field = type.GetField(property.propertyPath, unitySerializableFlags);
+            if (field != null)
+            {
+                return field;
+            }
+            type = type.BaseType;
+        }
+        return null;
     }
 }
