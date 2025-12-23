@@ -12,13 +12,9 @@ namespace StorkStudios.CoreNest
     {
         private InlineEditor inlineEditor;
 
-        private void OnEnable()
-        {
-            inlineEditor = new InlineEditor(serializedObject);
-        }
-
         public override void OnInspectorGUI()
         {
+            inlineEditor ??= new InlineEditor(serializedObject);
             inlineEditor.DrawInspector();
         }
     }

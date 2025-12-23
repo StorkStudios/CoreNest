@@ -66,32 +66,26 @@ namespace StorkStudios.CoreNest
             drawnFoldouts.Clear();
             SerializedProperty iterator = serializedObject.GetIterator();
 
-            // m_Script field
-            if (iterator.NextVisible(true))
+
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren))
             {
-                using (new EditorGUI.DisabledScope(true))
+                enterChildren = false;
+
+                if (iterator.propertyPath == "m_Script")
                 {
-                    float height = EditorGUI.GetPropertyHeight(iterator);
-                    position.yMax = position.yMin + height;
-                    EditorGUI.PropertyField(position, iterator, true);
-                    position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        float height = EditorGUI.GetPropertyHeight(iterator);
+                        position.yMax = position.yMin + height;
+                        EditorGUI.PropertyField(position, iterator, true);
+                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                    }
+                    continue;
                 }
-            }
-            else
-            {
-                // this object has no properties
-                return false;
-            }
 
-            if (serializedObject.targetObject == null)
-            {
-                return false;
-            }
-
-            while (iterator.NextVisible(false))
-            {
                 FieldInfo field = iterator.GetFieldInfo();
-                FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute foldout = field?.GetCustomAttribute<FoldoutGroupAttribute>();
 
                 if (foldout != null)
                 {
@@ -298,28 +292,21 @@ namespace StorkStudios.CoreNest
             drawnFoldouts.Clear();
             float result = 0;
 
-            // m_Script field
-            if (iterator.NextVisible(true))
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren))
             {
-                result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else
-            {
-                // this object has no properties
-                return result;
-            }
+                enterChildren = false;
 
-            if (serializedObject.targetObject == null)
-            {
-                return result;
-            }
+                if (iterator.propertyPath == "m_Script")
+                {
+                    result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+                    continue;
+                }
 
-            while (iterator.NextVisible(false))
-            {
                 bool wouldDraw = true;
 
                 FieldInfo field = iterator.GetFieldInfo();
-                FoldoutGroupAttribute foldout = field.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute foldout = field?.GetCustomAttribute<FoldoutGroupAttribute>();
 
                 if (foldout != null)
                 {
@@ -380,6 +367,7 @@ namespace StorkStudios.CoreNest
                 result += height;
             }
 
+            result -= EditorGUIUtility.standardVerticalSpacing; // remove last spacing
             return result;
         }
     }
