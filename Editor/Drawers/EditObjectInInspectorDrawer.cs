@@ -39,12 +39,11 @@ namespace StorkStudios.CoreNest
             Rect editorRect = position;
             editorRect.yMin += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
-
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
 
+                editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
                 editor.DrawInspector(editorRect);
 
                 EditorGUI.indentLevel--;
@@ -58,11 +57,10 @@ namespace StorkStudios.CoreNest
                 return EditorGUIUtility.singleLineHeight;
             }
 
-            editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
-
             float height = EditorGUIUtility.singleLineHeight;
             if (property.isExpanded)
             {
+                editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
                 height += EditorGUIUtility.standardVerticalSpacing + editor.GetHeight();
             }
             return height;
