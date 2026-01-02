@@ -58,7 +58,7 @@ namespace StorkStudios.CoreNest
             }
 
             float height = EditorGUIUtility.singleLineHeight;
-            if (property.isExpanded)
+            if (property.isExpanded && property.objectReferenceValue != null)
             {
                 editor ??= new InlineEditor(new SerializedObject(property.objectReferenceValue));
                 height += EditorGUIUtility.standardVerticalSpacing + editor.GetHeight();
