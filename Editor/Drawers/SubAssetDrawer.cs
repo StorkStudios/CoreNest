@@ -1,5 +1,6 @@
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace StorkStudios.CoreNest
@@ -7,46 +8,197 @@ namespace StorkStudios.CoreNest
     [CustomPropertyDrawer(typeof(SubAssetAttribute))]
     public class SubAssetDrawer : PropertyDrawer
     {
+        private static readonly GUIContent newSubAssetOption = new GUIContent("Create new sub-asset");
+        private static readonly GUIContent makeSubAssetOption = new GUIContent("Make sub-asset");
+        private static readonly GUIContent copySubAssetOption = new GUIContent("Create sub-asset copy");
+
         private static bool IsPropertyTypeSupported(SerializedProperty property)
         {
-            return property.propertyType == SerializedPropertyType.ObjectReference &&
-                   property.objectReferenceValue is not Component;
+            bool propertyTypeCheck = property.propertyType == SerializedPropertyType.ObjectReference &&
+                                     property.objectReferenceValue is not Component;
+
+            Object targetObject = property.serializedObject.targetObject;
+            bool isAssetCheck = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(targetObject)) ||
+                                PrefabUtility.IsPartOfAnyPrefab(targetObject);
+
+            PrefabStage stage = PrefabStageUtility.GetCurrentPrefabStage();
+            bool isInPrefabMode = stage != null && targetObject is Component c && c.gameObject.scene == stage.scene;
+            isAssetCheck |= isInPrefabMode;
+
+            return propertyTypeCheck && isAssetCheck;
+        }
+
+        private static string GetTargetAssetPath(Object target)
+        {
+            string path = AssetDatabase.GetAssetPath(target);
+            if (!string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+            PrefabStage stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null && target is Component c && c.gameObject.scene == stage.scene)
+            {
+                return stage.assetPath;
+            }
+
+            Object prefabInstance = PrefabUtility.GetOutermostPrefabInstanceRoot(target);
+            path = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefabInstance);
+            if (!string.IsNullOrEmpty(path))
+            {
+                return path;
+            }
+
+            return null;
+        }
+
+        private static bool IsSubAssetOf(Object asset, string parentPath)
+        {
+            return AssetDatabase.IsSubAsset(asset) && AssetDatabase.GetAssetPath(asset) == parentPath;
+        }
+
+        private static Object MakeSubAssetCopy(Object asset, string parentPath)
+        {
+            Object copy = Object.Instantiate(asset);
+            AssetDatabase.AddObjectToAsset(copy, parentPath);
+            return copy;
+        }
+
+        private static void MakeSubAsset(Object asset, string parentPath)
+        {
+            string path = AssetDatabase.GetAssetPath(asset);
+            AssetDatabase.RemoveObjectFromAsset(asset);
+            AssetDatabase.AddObjectToAsset(asset, parentPath);
+            AssetDatabase.DeleteAsset(path);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if (!IsPropertyTypeSupported(property))
             {
-                string message = "SubAsset can only be used with UnityEngine.Object that are not UnityEngine.Component";
+                string message = "SubAsset can only be used inside assets (.prefab, .asset, etc.) on fields of type UnityEngine.Object that are not UnityEngine.Component";
                 GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
                 content.text = message;
                 FieldInfo field = property.GetFieldInfo();
                 content.tooltip = $"{field.DeclaringType.Name}.{field.Name}";
-                EditorGUI.LabelField(position, content);
+                EditorGUI.LabelField(position, content, EditorStyles.wordWrappedLabel);
                 return;
             }
+
+            if (property.serializedObject.isEditingMultipleObjects)
+            {
+                // sub-assets are owned by a single object, so we can't handle multi-object editing
+                EditorGUI.PropertyField(position, property, label);
+                return;
+            }
+
+            bool saveAssets = false;
+            Object targetObject = property.serializedObject.targetObject;
+            string targetAssetPath = GetTargetAssetPath(targetObject);
+            string targetAssetName = System.IO.Path.GetFileName(targetAssetPath);
 
             Object oldValue = property.objectReferenceValue;
-
             EditorGUI.BeginChangeCheck();
             
-            EditorGUI.PropertyField(position, property);
+            GUIStyle buttonStyle = EditorStyles.iconButton;
             
-            if (!EditorGUI.EndChangeCheck())
+            position.xMax -= buttonStyle.fixedWidth + 2;
+            EditorGUI.PropertyField(position, property, label);
+
+            position.xMin = position.xMax + 2;
+            position.xMax += buttonStyle.fixedWidth;
+            if (GUI.Button(position, EditorGUIUtility.IconContent("d__Menu@2x"), buttonStyle))
             {
-                return;
+                Object currentValue = property.objectReferenceValue;
+
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(newSubAssetOption, false, () =>
+                {
+                    //todo tworzenie nowego sub-assetu
+                    Debug.Log("bulech");
+                });
+
+                if (currentValue != null && !AssetDatabase.IsSubAsset(currentValue))
+                {
+                    menu.AddItem(makeSubAssetOption, false, () =>
+                    {
+                        MakeSubAsset(currentValue, targetAssetPath);
+                        saveAssets = true;
+                    });
+                }
+                else
+                {
+                    menu.AddDisabledItem(makeSubAssetOption);
+                }
+
+                if (currentValue != null && !IsSubAssetOf(currentValue, targetAssetPath))
+                {
+                    menu.AddItem(copySubAssetOption, false, () =>
+                    {
+                        property.objectReferenceValue = MakeSubAssetCopy(currentValue, targetAssetPath);
+                        saveAssets = true;
+                    });
+                }
+                else
+                {
+                    menu.AddDisabledItem(copySubAssetOption);
+                }
+                menu.DropDown(position);
+            }
+            
+            if (EditorGUI.EndChangeCheck())
+            {
+                saveAssets |= ReactToChanges(property, oldValue, targetAssetPath, targetAssetName);
             }
 
+            if (saveAssets)
+            {
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private bool ReactToChanges(SerializedProperty property, Object oldValue, string targetAssetPath, string targetAssetName)
+        {
             Object newValue = property.objectReferenceValue;
+            if (newValue == oldValue)
+            {
+                return false;
+            }
 
+            bool saveAssets = false;
 
+            if (oldValue != null && IsSubAssetOf(oldValue, targetAssetPath))
+            {
+                if (EditorUtility.DisplayDialog("SubAsset: Destroy sub-asset", $"Setting new value will destroy current sub-asset \"{targetAssetName}/{oldValue.name}\". Consider making a copy.", "Destroy", "Cancel"))
+                {
+                    Object.DestroyImmediate(oldValue, true);
+                    saveAssets = true;
+                }
+            }
+
+            if (newValue != null && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(newValue)) && !AssetDatabase.IsSubAsset(newValue))
+            {
+                int choice = EditorUtility.DisplayDialogComplex("SubAsset: Create from existing", $"Assigned asset \"{newValue.name}\" can be made into a sub-asset of \"{targetAssetName}\"", "Make sub-asset", "Only set value", "Create sub-asset copy");
+                switch (choice)
+                {
+                    case 0:
+                        MakeSubAsset(newValue, targetAssetPath);
+                        saveAssets = true;
+                        break;
+                    case 2:
+                        property.objectReferenceValue = MakeSubAssetCopy(newValue, targetAssetPath);
+                        saveAssets = true;
+                        break;
+                }
+            }
+
+            return saveAssets;
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             if (!IsPropertyTypeSupported(property))
             {
-                return EditorGUIUtility.singleLineHeight;
+                return EditorGUIUtility.singleLineHeight * 2;
             }
 
             return EditorGUI.GetPropertyHeight(property, label);
