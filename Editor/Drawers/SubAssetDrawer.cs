@@ -8,14 +8,15 @@ namespace StorkStudios.CoreNest
     [CustomPropertyDrawer(typeof(SubAssetAttribute))]
     public class SubAssetDrawer : PropertyDrawer
     {
-        private static readonly GUIContent newSubAssetOption = new GUIContent("Create new sub-asset");
-        private static readonly GUIContent makeSubAssetOption = new GUIContent("Make sub-asset");
+        private static readonly GUIContent makeSubAssetOption = new GUIContent("Make into sub-asset");
         private static readonly GUIContent copySubAssetOption = new GUIContent("Create sub-asset copy");
 
         private static bool IsPropertyTypeSupported(SerializedProperty property)
         {
+            System.Type propertyType = property.GetFieldInfo().FieldType;
             bool propertyTypeCheck = property.propertyType == SerializedPropertyType.ObjectReference &&
-                                     property.objectReferenceValue is not Component;
+                                     !typeof(Component).IsAssignableFrom(propertyType) &&
+                                     !typeof(GameObject).IsAssignableFrom(propertyType);
 
             Object targetObject = property.serializedObject.targetObject;
             bool isAssetCheck = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(targetObject)) ||
@@ -75,7 +76,7 @@ namespace StorkStudios.CoreNest
         {
             if (!IsPropertyTypeSupported(property))
             {
-                string message = "SubAsset can only be used inside assets (.prefab, .asset, etc.) on fields of type UnityEngine.Object that are not UnityEngine.Component";
+                string message = "SubAsset can only be used inside assets (.prefab, .asset, etc.) on fields of type UnityEngine.Object that are not components or game objects";
                 GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
                 content.text = message;
                 FieldInfo field = property.GetFieldInfo();
@@ -111,11 +112,6 @@ namespace StorkStudios.CoreNest
                 Object currentValue = property.objectReferenceValue;
 
                 GenericMenu menu = new GenericMenu();
-                menu.AddItem(newSubAssetOption, false, () =>
-                {
-                    //todo tworzenie nowego sub-assetu
-                    Debug.Log("bulech");
-                });
 
                 if (currentValue != null && !AssetDatabase.IsSubAsset(currentValue))
                 {
