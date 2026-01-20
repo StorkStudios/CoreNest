@@ -25,7 +25,10 @@ public static class SerializedPropertyExtensions
         return null;
     }
 
-
+    /// <summary>
+    /// Gets the type of elements in the array that contains this property. The array element type cannot be found by property path so <see cref="GetFieldInfo(SerializedProperty)"/> cannot be used.
+    /// </summary>
+    /// <returns>A Type object representing the type of element of array or null if the property isn't an array element or the array type isn't compatible.</returns>
     public static Type GetArrayElementPropertyType(this SerializedProperty property)
     {
         if (!property.propertyPath.Contains("Array.data["))
