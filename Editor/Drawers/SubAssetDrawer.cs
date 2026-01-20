@@ -11,9 +11,14 @@ namespace StorkStudios.CoreNest
         private static readonly GUIContent makeSubAssetOption = new GUIContent("Make into sub-asset");
         private static readonly GUIContent copySubAssetOption = new GUIContent("Create sub-asset copy");
 
+        private static System.Type GetPropertyType(SerializedProperty property)
+        {
+            return property.GetFieldInfo()?.FieldType ?? property.GetArrayElementPropertyType();
+        }
+
         private static bool IsPropertyTypeSupported(SerializedProperty property)
         {
-            System.Type propertyType = property.GetFieldInfo().FieldType;
+            System.Type propertyType = GetPropertyType(property);
             bool propertyTypeCheck = property.propertyType == SerializedPropertyType.ObjectReference &&
                                      !typeof(Component).IsAssignableFrom(propertyType) &&
                                      !typeof(GameObject).IsAssignableFrom(propertyType);
@@ -79,8 +84,7 @@ namespace StorkStudios.CoreNest
                 string message = "SubAsset can only be used inside assets (.prefab, .asset, etc.) on fields of type UnityEngine.Object that are not components or game objects";
                 GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
                 content.text = message;
-                FieldInfo field = property.GetFieldInfo();
-                content.tooltip = $"{field.DeclaringType.Name}.{field.Name}";
+                content.tooltip = $"{property.serializedObject.targetObject.GetType().Name}/{property.propertyPath}";
                 EditorGUI.LabelField(position, content, EditorStyles.wordWrappedLabel);
                 return;
             }
@@ -103,10 +107,14 @@ namespace StorkStudios.CoreNest
             GUIStyle buttonStyle = EditorStyles.iconButton;
             
             position.xMax -= buttonStyle.fixedWidth + 2;
+            position.yMax -= EditorGUIUtility.standardVerticalSpacing;
             EditorGUI.PropertyField(position, property, label);
 
             position.xMin = position.xMax + 2;
             position.xMax += buttonStyle.fixedWidth;
+            position.yMin += 1;
+            position.yMax = position.yMin + buttonStyle.fixedHeight;
+
             if (GUI.Button(position, EditorGUIUtility.IconContent("d__Menu@2x"), buttonStyle))
             {
                 Object currentValue = property.objectReferenceValue;

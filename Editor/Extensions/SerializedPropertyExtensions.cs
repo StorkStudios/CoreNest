@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
@@ -23,6 +22,30 @@ public static class SerializedPropertyExtensions
             }
             type = type.BaseType;
         }
+        return null;
+    }
+
+
+    public static Type GetArrayElementPropertyType(this SerializedProperty property)
+    {
+        if (!property.propertyPath.Contains("Array.data["))
+        {
+            return null;
+        }
+
+        string arrayPropertyPath = property.propertyPath.Split(".Array.data[")[0];
+        SerializedProperty arrayProperty = property.serializedObject.FindProperty(arrayPropertyPath);
+        FieldInfo arrayFieldInfo = arrayProperty.GetFieldInfo();
+        Type arrayType = arrayFieldInfo.FieldType;
+        if (arrayType.IsArray)
+        {
+            return arrayType.GetElementType();
+        }
+        else if (arrayType.IsGenericType && arrayType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>))
+        {
+            return arrayType.GetGenericArguments()[0];
+        }
+
         return null;
     }
 }
