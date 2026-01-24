@@ -20,8 +20,7 @@ namespace StorkStudios.CoreNest
         {
             System.Type propertyType = GetPropertyType(property);
             bool propertyTypeCheck = property.propertyType == SerializedPropertyType.ObjectReference &&
-                                     !typeof(Component).IsAssignableFrom(propertyType) &&
-                                     !typeof(GameObject).IsAssignableFrom(propertyType);
+                                     SubAssetUtils.CanTypeBeSubAsset(propertyType, true);
 
             Object targetObject = property.serializedObject.targetObject;
             bool isAssetCheck = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(targetObject)) ||
@@ -81,7 +80,7 @@ namespace StorkStudios.CoreNest
         {
             if (!IsPropertyTypeSupported(property))
             {
-                string message = "SubAsset can only be used inside assets (.prefab, .asset, etc.) on fields of type UnityEngine.Object that are not components or game objects";
+                string message = "SubAsset can only be used inside assets (.prefab, .asset, etc.) on fields of type UnityEngine.Object that are not components, game objects or shaders.";
                 GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
                 content.text = message;
                 content.tooltip = $"{property.serializedObject.targetObject.GetType().Name}/{property.propertyPath}";
@@ -107,7 +106,6 @@ namespace StorkStudios.CoreNest
             GUIStyle buttonStyle = EditorStyles.iconButton;
             
             position.xMax -= buttonStyle.fixedWidth + 2;
-            position.yMax -= EditorGUIUtility.standardVerticalSpacing;
             EditorGUI.PropertyField(position, property, label);
 
             position.xMin = position.xMax + 2;
