@@ -33,5 +33,20 @@ namespace StorkStudios.CoreNest
 
             return true;
         }
+
+        public static Object MakeSubAssetCopy(Object asset, string parentPath)
+        {
+            Object copy = Object.Instantiate(asset);
+            AssetDatabase.AddObjectToAsset(copy, parentPath);
+            return copy;
+        }
+
+        public static void MakeIntoSubAsset(Object asset, string parentPath)
+        {
+            string path = AssetDatabase.GetAssetPath(asset);
+            AssetDatabase.RemoveObjectFromAsset(asset);
+            AssetDatabase.AddObjectToAsset(asset, parentPath);
+            AssetDatabase.DeleteAsset(path);
+        }
     }
 }

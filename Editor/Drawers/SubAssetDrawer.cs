@@ -61,21 +61,6 @@ namespace StorkStudios.CoreNest
             return AssetDatabase.IsSubAsset(asset) && AssetDatabase.GetAssetPath(asset) == parentPath;
         }
 
-        private static Object MakeSubAssetCopy(Object asset, string parentPath)
-        {
-            Object copy = Object.Instantiate(asset);
-            AssetDatabase.AddObjectToAsset(copy, parentPath);
-            return copy;
-        }
-
-        private static void MakeSubAsset(Object asset, string parentPath)
-        {
-            string path = AssetDatabase.GetAssetPath(asset);
-            AssetDatabase.RemoveObjectFromAsset(asset);
-            AssetDatabase.AddObjectToAsset(asset, parentPath);
-            AssetDatabase.DeleteAsset(path);
-        }
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if (!IsPropertyTypeSupported(property))
@@ -105,10 +90,10 @@ namespace StorkStudios.CoreNest
             
             GUIStyle buttonStyle = EditorStyles.iconButton;
             
-            position.xMax -= buttonStyle.fixedWidth + 2;
+            position.xMax -= buttonStyle.fixedWidth + EditorGUIUtility.standardVerticalSpacing;
             EditorGUI.PropertyField(position, property, label);
 
-            position.xMin = position.xMax + 2;
+            position.xMin = position.xMax + EditorGUIUtility.standardVerticalSpacing;
             position.xMax += buttonStyle.fixedWidth;
             position.yMin += 1;
             position.yMax = position.yMin + buttonStyle.fixedHeight;
@@ -123,7 +108,7 @@ namespace StorkStudios.CoreNest
                 {
                     menu.AddItem(makeSubAssetOption, false, () =>
                     {
-                        MakeSubAsset(currentValue, targetAssetPath);
+                        SubAssetUtils.MakeIntoSubAsset(currentValue, targetAssetPath);
                         saveAssets = true;
                     });
                 }
@@ -136,7 +121,7 @@ namespace StorkStudios.CoreNest
                 {
                     menu.AddItem(copySubAssetOption, false, () =>
                     {
-                        property.objectReferenceValue = MakeSubAssetCopy(currentValue, targetAssetPath);
+                        property.objectReferenceValue = SubAssetUtils.MakeSubAssetCopy(currentValue, targetAssetPath);
                         saveAssets = true;
                     });
                 }
@@ -183,11 +168,11 @@ namespace StorkStudios.CoreNest
                 switch (choice)
                 {
                     case 0:
-                        MakeSubAsset(newValue, targetAssetPath);
+                        SubAssetUtils.MakeIntoSubAsset(newValue, targetAssetPath);
                         saveAssets = true;
                         break;
                     case 2:
-                        property.objectReferenceValue = MakeSubAssetCopy(newValue, targetAssetPath);
+                        property.objectReferenceValue = SubAssetUtils.MakeSubAssetCopy(newValue, targetAssetPath);
                         saveAssets = true;
                         break;
                 }
