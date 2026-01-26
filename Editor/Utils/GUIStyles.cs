@@ -10,11 +10,12 @@ namespace StorkStudios.CoreNest
         public readonly static GUIStyle Bold;
 
         public readonly static GUIStyle ListFoldout;
+        public readonly static GUIStyle IconLabel;
 
         public static Color BackgroundColor => EditorGUIUtility.isProSkin ? new Color(0.22f,0.22f,0.22f) : new Color(0.76f,0.76f,0.76f);
         public static Color HoverBackgroundColor => EditorGUIUtility.isProSkin ? new Color(0.27f, 0.27f, 0.27f) : new Color(0.82f, 0.82f, 0.82f);
 
-        static GUIStyles ()
+        static GUIStyles()
         {
             Bold = new GUIStyle(GUI.skin.label)
             {
@@ -27,6 +28,11 @@ namespace StorkStudios.CoreNest
             };
             ListFoldout.padding.left += 2;
             ListFoldout.margin.left -= 1;
+
+            IconLabel = new GUIStyle(EditorStyles.iconButton)
+            {
+                name = "IconLabel", // style states (onHover etc.) are handled inside unity based on name so to disable them we assign a custom name
+            };
         }
     }
 }

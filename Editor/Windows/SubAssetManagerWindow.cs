@@ -14,6 +14,16 @@ namespace StorkStudios.CoreNest
             public Object mainAsset;
             public Dictionary<Object, List<SerializedProperty>> subAssets;
             public Dictionary<Object, List<SerializedProperty>> dependencyAssets;
+            public Dictionary<Object, List<Object>> assetUsages;
+
+            public bool IsAssetUsedByMainAsset(Object asset)
+            {
+                if (asset == mainAsset)
+                {
+                    return true;
+                }
+                return assetUsages.ContainsKey(asset) && assetUsages[asset].Any(IsAssetUsedByMainAsset);
+            }
         }
 
         [SerializeField]
@@ -28,13 +38,21 @@ namespace StorkStudios.CoreNest
             GetWindow(typeof(SubAssetManagerWindow));
         }
 
+        public static void Open(Object asset)
+        {
+            SubAssetManagerWindow window = GetWindow<SubAssetManagerWindow>();
+            window.parentAsset = asset;
+        }
+
         private static AssetInfo GetAssetInfo(Object assetObject)
         {
             AssetInfo assetInfo;
-            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(assetObject));
+            string path = AssetDatabase.GetAssetPath(assetObject);
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
             assetInfo.mainAsset = assets.First(e => AssetDatabase.IsMainAsset(e));
             assetInfo.subAssets = new Dictionary<Object, List<SerializedProperty>>();
             assetInfo.dependencyAssets = new Dictionary<Object, List<SerializedProperty>>();
+            assetInfo.assetUsages = new Dictionary<Object, List<Object>>();
 
             foreach (Object asset in assets)
             {
@@ -44,6 +62,7 @@ namespace StorkStudios.CoreNest
                 }
 
                 assetInfo.subAssets.Add(asset, new List<SerializedProperty>());
+                assetInfo.assetUsages.Add(asset, new List<Object>());
             }
 
             foreach (Object asset in assets)
@@ -66,9 +85,10 @@ namespace StorkStudios.CoreNest
                     if (assetInfo.subAssets.ContainsKey(objectValue))
                     {
                         assetInfo.subAssets[objectValue].Add(iterator.Copy());
+                        assetInfo.assetUsages[objectValue].Add(asset);
                     }
 
-                    if (SubAssetUtils.CanTypeBeSubAsset(objectValue.GetType(), true))
+                    if (AssetDatabase.GetAssetPath(objectValue) != path && SubAssetUtils.CanTypeBeSubAsset(objectValue.GetType(), true))
                     {
                         if (!assetInfo.dependencyAssets.ContainsKey(objectValue))
                         {
@@ -130,10 +150,6 @@ namespace StorkStudios.CoreNest
             using (new EditorGUI.IndentLevelScope(1))
             {
                 IEnumerable<Object> subAssets = assetInfo.subAssets.Keys;
-                if (subAssets.Count() <= 0)
-                {
-                    EditorGUILayout.HelpBox("No sub-assets in this asset", MessageType.Info);
-                }
                 foreach (Object subAsset in subAssets)
                 {
                     using (new EditorGUILayout.HorizontalScope())
@@ -143,11 +159,19 @@ namespace StorkStudios.CoreNest
                         Rect rect = EditorGUI.IndentedRect(controlRect);
 
                         bool isSubAssetUsed = assetInfo.subAssets[subAsset].Count > 0;
-                        string usedIcon = isSubAssetUsed ? "CacheServerConnected" : "CacheServerDisabled";
+                        bool isSubAssetUsedByMain = assetInfo.IsAssetUsedByMainAsset(subAsset);
+
+                        string usedIcon = (isSubAssetUsed, isSubAssetUsedByMain) switch
+                        {
+                            (true, true) => "greenLight",
+                            (true, false) => "orangeLight",
+                            _ => "lightOff"
+                        };
                         rect.xMax = rect.xMin + EditorStyles.iconButton.fixedWidth;
                         GUIContent usedContent = new GUIContent(EditorGUIUtility.IconContent(usedIcon));
                         usedContent.tooltip = isSubAssetUsed ? GetAssetPropertyPaths(subAsset, assetInfo.subAssets[subAsset]) : "This sub asset is not used in the parent asset";
-                        GUI.Label(rect, usedContent, EditorStyles.iconButton);
+                        GUI.Label(rect, usedContent, GUIStyles.IconLabel);
+                        GUI.Label(rect, EditorGUIUtility.IconContent("lightRim"), GUIStyles.IconLabel);
 
                         rect.x += rect.width + EditorGUIUtility.standardVerticalSpacing;
                         GUIContent thumbnail = new GUIContent { image = AssetPreview.GetMiniThumbnail(subAsset) };
@@ -177,6 +201,14 @@ namespace StorkStudios.CoreNest
                         }
                     }
                 }
+                if (subAssets.Count() <= 0)
+                {
+                    EditorGUILayout.HelpBox("No sub-assets in this asset", MessageType.Info);
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("(green - used by main asset, yellow - used by unused sub-asset, none - unused)");
+                }
             }
 
             EditorGUILayout.Space(2);
@@ -186,15 +218,18 @@ namespace StorkStudios.CoreNest
                 IEnumerable<Object> dependencyAssets = assetInfo.dependencyAssets.Keys.Where(e => !assetInfo.subAssets.ContainsKey(e));
                 if (dependencyAssets.Count() <= 0)
                 {
-                    EditorGUILayout.HelpBox("No assets are used by this asset", MessageType.Info);
+                    EditorGUILayout.HelpBox("No sub-assetable external assets are used by this asset", MessageType.Info);
                 }
                 foreach (Object asset in dependencyAssets)
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        using (new EditorGUI.DisabledScope(true))
+                        Rect rect =  EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
+                        GUIContent content = new GUIContent(EditorGUIUtility.ObjectContent(asset, asset.GetType()));
+                        content.tooltip = GetAssetPropertyPaths(asset, assetInfo.dependencyAssets[asset]);
+                        if (GUI.Button(rect, content, EditorStyles.objectField))
                         {
-                            EditorGUILayout.ObjectField(asset, asset.GetType(), false);
+                            EditorGUIUtility.PingObject(asset);
                         }
 
                         GUIStyle iconStyle = new GUIStyle(EditorStyles.iconButton);
@@ -229,29 +264,47 @@ namespace StorkStudios.CoreNest
 
             EditorGUILayout.Space(2);
             EditorGUILayout.LabelField("Add another asset", GUIStyles.Bold);
+            bool isDisabled = false;
             using (new EditorGUI.IndentLevelScope(1))
-            using (new EditorGUILayout.HorizontalScope())
             {
-                customAssetToAdd = EditorGUILayout.ObjectField(customAssetToAdd, typeof(Object), false);
-
-                GUIStyle iconStyle = new GUIStyle(EditorStyles.iconButton);
-                iconStyle.margin.top += 2;
-                Rect buttonRect = GUILayoutUtility.GetRect(EditorGUIUtility.IconContent("d__Menu@2x"), iconStyle);
-                if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("d__Menu@2x"), iconStyle) && customAssetToAdd != null)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Make into sub-asset"), false, () =>
-                    {
-                        SubAssetUtils.MakeIntoSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
-                        AssetDatabase.SaveAssets();
-                    });
-                    menu.AddItem(new GUIContent("Create sub-asset copy"), false, () =>
-                    {
-                        SubAssetUtils.MakeSubAssetCopy(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
-                        AssetDatabase.SaveAssets();
-                    });
+                    customAssetToAdd = EditorGUILayout.ObjectField(customAssetToAdd, typeof(Object), false);
 
-                    menu.DropDown(buttonRect);
+                    GUIStyle iconStyle = new GUIStyle(EditorStyles.iconButton);
+                    iconStyle.margin.top += 2;
+                    Rect buttonRect = GUILayoutUtility.GetRect(EditorGUIUtility.IconContent("d__Menu@2x"), iconStyle);
+                    isDisabled = customAssetToAdd == null || !SubAssetUtils.CanInstanceBeSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                    using (new EditorGUI.DisabledScope(isDisabled))
+                    {
+                        if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("d__Menu@2x"), iconStyle) && customAssetToAdd != null)
+                        {
+                            GenericMenu menu = new GenericMenu();
+                            if (!AssetDatabase.IsSubAsset(customAssetToAdd))
+                            {
+                                menu.AddItem(new GUIContent("Make into sub-asset"), false, () =>
+                                {
+                                    SubAssetUtils.MakeIntoSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                                    AssetDatabase.SaveAssets();
+                                });
+                            }
+                            else
+                            {
+                                menu.AddDisabledItem(new GUIContent("Make into sub-asset"));
+                            }
+                            menu.AddItem(new GUIContent("Create sub-asset copy"), false, () =>
+                                {
+                                    SubAssetUtils.MakeSubAssetCopy(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                                    AssetDatabase.SaveAssets();
+                                });
+
+                            menu.DropDown(buttonRect);
+                        }
+                    }
+                }
+                if (isDisabled)
+                {
+                    EditorGUILayout.HelpBox("Select an asset that can be a sub-asset of the parent asset", MessageType.Info);
                 }
             }
         }

@@ -104,7 +104,11 @@ namespace StorkStudios.CoreNest
 
                 GenericMenu menu = new GenericMenu();
 
-                if (currentValue != null && !AssetDatabase.IsSubAsset(currentValue))
+                menu.AddItem(new GUIContent("Open sub-asset manager"), false, () => SubAssetManagerWindow.Open(targetObject));
+
+                bool canInstanceBeSubAsset = SubAssetUtils.CanInstanceBeSubAsset(currentValue, targetAssetPath);
+
+                if (currentValue != null && canInstanceBeSubAsset && !AssetDatabase.IsSubAsset(currentValue))
                 {
                     menu.AddItem(makeSubAssetOption, false, () =>
                     {
@@ -117,7 +121,7 @@ namespace StorkStudios.CoreNest
                     menu.AddDisabledItem(makeSubAssetOption);
                 }
 
-                if (currentValue != null && !IsSubAssetOf(currentValue, targetAssetPath))
+                if (currentValue != null && canInstanceBeSubAsset && !IsSubAssetOf(currentValue, targetAssetPath))
                 {
                     menu.AddItem(copySubAssetOption, false, () =>
                     {
@@ -159,6 +163,11 @@ namespace StorkStudios.CoreNest
                 {
                     Object.DestroyImmediate(oldValue, true);
                     saveAssets = true;
+                }
+                else
+                { 
+                    property.objectReferenceValue = oldValue;
+                    return saveAssets;
                 }
             }
 

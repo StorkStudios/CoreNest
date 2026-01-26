@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -34,6 +35,19 @@ namespace StorkStudios.CoreNest
             return true;
         }
 
+        public static bool CanInstanceBeSubAsset(Object asset, string parentPath)
+        {
+            return asset != null &&
+                   AssetDatabase.GetAssetPath(asset) != parentPath &&
+                   !IsBuiltinAsset(asset);
+        }
+
+        private static bool IsBuiltinAsset(Object asset)
+        {
+            return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out _) &&
+                   Regex.IsMatch(guid, "0000000000000000[0-9a-f]000000000000000");
+        }
+
         public static Object MakeSubAssetCopy(Object asset, string parentPath)
         {
             Object copy = Object.Instantiate(asset);
@@ -46,7 +60,10 @@ namespace StorkStudios.CoreNest
             string path = AssetDatabase.GetAssetPath(asset);
             AssetDatabase.RemoveObjectFromAsset(asset);
             AssetDatabase.AddObjectToAsset(asset, parentPath);
-            AssetDatabase.DeleteAsset(path);
+            if (AssetDatabase.LoadAllAssetsAtPath(path).Length == 0)
+            {
+                AssetDatabase.DeleteAsset(path);
+            }
         }
     }
 }
