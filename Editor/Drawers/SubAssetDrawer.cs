@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -8,7 +9,7 @@ namespace StorkStudios.CoreNest
     [CustomPropertyDrawer(typeof(SubAssetAttribute))]
     public class SubAssetDrawer : PropertyDrawer
     {
-        private static readonly GUIContent makeSubAssetOption = new GUIContent("Make into sub-asset");
+        private static readonly GUIContent moveSubAssetOption = new GUIContent("Move into sub-asset");
         private static readonly GUIContent copySubAssetOption = new GUIContent("Create sub-asset copy");
 
         private static System.Type GetPropertyType(SerializedProperty property)
@@ -80,7 +81,6 @@ namespace StorkStudios.CoreNest
                 return;
             }
 
-            bool saveAssets = false;
             Object targetObject = property.serializedObject.targetObject;
             string targetAssetPath = GetTargetAssetPath(targetObject);
             string targetAssetName = System.IO.Path.GetFileName(targetAssetPath);
@@ -108,17 +108,17 @@ namespace StorkStudios.CoreNest
 
                 bool canInstanceBeSubAsset = SubAssetUtils.CanInstanceBeSubAsset(currentValue, targetAssetPath);
 
-                if (currentValue != null && canInstanceBeSubAsset && !AssetDatabase.IsSubAsset(currentValue))
+                if (currentValue != null && canInstanceBeSubAsset)
                 {
-                    menu.AddItem(makeSubAssetOption, false, () =>
+                    menu.AddItem(moveSubAssetOption, false, () =>
                     {
                         SubAssetUtils.MakeIntoSubAsset(currentValue, targetAssetPath);
-                        saveAssets = true;
+                        AssetDatabase.SaveAssets();
                     });
                 }
                 else
                 {
-                    menu.AddDisabledItem(makeSubAssetOption);
+                    menu.AddDisabledItem(moveSubAssetOption);
                 }
 
                 if (currentValue != null && canInstanceBeSubAsset && !IsSubAssetOf(currentValue, targetAssetPath))
@@ -126,7 +126,7 @@ namespace StorkStudios.CoreNest
                     menu.AddItem(copySubAssetOption, false, () =>
                     {
                         property.objectReferenceValue = SubAssetUtils.MakeSubAssetCopy(currentValue, targetAssetPath);
-                        saveAssets = true;
+                        AssetDatabase.SaveAssets();
                     });
                 }
                 else
@@ -138,56 +138,46 @@ namespace StorkStudios.CoreNest
             
             if (EditorGUI.EndChangeCheck())
             {
-                saveAssets |= ReactToChanges(property, oldValue, targetAssetPath, targetAssetName);
-            }
-
-            if (saveAssets)
-            {
-                AssetDatabase.SaveAssets();
+                ReactToChanges(property, oldValue, targetAssetPath, targetAssetName);
             }
         }
 
-        private bool ReactToChanges(SerializedProperty property, Object oldValue, string targetAssetPath, string targetAssetName)
+        private void ReactToChanges(SerializedProperty property, Object oldValue, string targetAssetPath, string targetAssetName)
         {
             Object newValue = property.objectReferenceValue;
             if (newValue == oldValue)
             {
-                return false;
+                return;
             }
-
-            bool saveAssets = false;
 
             if (oldValue != null && IsSubAssetOf(oldValue, targetAssetPath))
             {
-                if (EditorUtility.DisplayDialog("SubAsset: Destroy sub-asset", $"Setting new value will destroy current sub-asset \"{targetAssetName}/{oldValue.name}\". Consider making a copy.", "Destroy", "Cancel"))
+                property.serializedObject.ApplyModifiedProperties();
+                if (!AssetDatabase.LoadAllAssetsAtPath(targetAssetPath).Any(e => SubAssetUtils.IsSubAssetUsedInAsset(oldValue, e)))
                 {
-                    Object.DestroyImmediate(oldValue, true);
-                    saveAssets = true;
-                }
-                else
-                { 
-                    property.objectReferenceValue = oldValue;
-                    return saveAssets;
+                    if (EditorUtility.DisplayDialog("SubAsset: Destroy sub-asset", $"Setting new value will make current sub-asset \"{targetAssetName}/{oldValue.name}\" unused. Consider making a copy and deleting it.", "Delete", "Leave as unused sub-asset"))
+                    {
+                        Object.DestroyImmediate(oldValue, true);
+                        AssetDatabase.SaveAssets();
+                    }
                 }
             }
 
-            if (newValue != null && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(newValue)) && !AssetDatabase.IsSubAsset(newValue))
+            if (newValue != null && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(newValue)) && !AssetDatabase.IsSubAsset(newValue) && SubAssetUtils.CanInstanceBeSubAsset(newValue, targetAssetPath))
             {
                 int choice = EditorUtility.DisplayDialogComplex("SubAsset: Create from existing", $"Assigned asset \"{newValue.name}\" can be made into a sub-asset of \"{targetAssetName}\"", "Make sub-asset", "Only set value", "Create sub-asset copy");
                 switch (choice)
                 {
                     case 0:
                         SubAssetUtils.MakeIntoSubAsset(newValue, targetAssetPath);
-                        saveAssets = true;
+                        AssetDatabase.SaveAssets();
                         break;
                     case 2:
                         property.objectReferenceValue = SubAssetUtils.MakeSubAssetCopy(newValue, targetAssetPath);
-                        saveAssets = true;
+                        AssetDatabase.SaveAssets();
                         break;
                 }
             }
-
-            return saveAssets;
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

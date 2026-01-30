@@ -16,13 +16,13 @@ namespace StorkStudios.CoreNest
             public Dictionary<Object, List<SerializedProperty>> dependencyAssets;
             public Dictionary<Object, List<Object>> assetUsages;
 
-            public bool IsAssetUsedByMainAsset(Object asset)
+            public readonly bool IsAssetUsedByMainAsset(Object asset)
             {
                 if (asset == mainAsset)
                 {
                     return true;
                 }
-                return assetUsages.ContainsKey(asset) && assetUsages[asset].Any(IsAssetUsedByMainAsset);
+                return assetUsages.ContainsKey(asset) && assetUsages[asset].Where(e => e != asset).Any(IsAssetUsedByMainAsset);
             }
         }
 
@@ -111,7 +111,7 @@ namespace StorkStudios.CoreNest
 
             bool first = true;
             StringBuilder sb = new StringBuilder();
-            foreach (SerializedProperty property in properties)
+            foreach (SerializedProperty property in properties.Where(e => e.serializedObject.targetObject != null))
             {
                 if (!first)
                 {
@@ -280,23 +280,16 @@ namespace StorkStudios.CoreNest
                         if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("d__Menu@2x"), iconStyle) && customAssetToAdd != null)
                         {
                             GenericMenu menu = new GenericMenu();
-                            if (!AssetDatabase.IsSubAsset(customAssetToAdd))
+                            menu.AddItem(new GUIContent("Move into sub-asset"), false, () =>
                             {
-                                menu.AddItem(new GUIContent("Make into sub-asset"), false, () =>
-                                {
-                                    SubAssetUtils.MakeIntoSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
-                                    AssetDatabase.SaveAssets();
-                                });
-                            }
-                            else
-                            {
-                                menu.AddDisabledItem(new GUIContent("Make into sub-asset"));
-                            }
+                                SubAssetUtils.MakeIntoSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                                AssetDatabase.SaveAssets();
+                            });
                             menu.AddItem(new GUIContent("Create sub-asset copy"), false, () =>
-                                {
-                                    SubAssetUtils.MakeSubAssetCopy(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
-                                    AssetDatabase.SaveAssets();
-                                });
+                            {
+                                SubAssetUtils.MakeSubAssetCopy(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                                AssetDatabase.SaveAssets();
+                            });
 
                             menu.DropDown(buttonRect);
                         }
@@ -304,7 +297,14 @@ namespace StorkStudios.CoreNest
                 }
                 if (isDisabled)
                 {
-                    EditorGUILayout.HelpBox("Select an asset that can be a sub-asset of the parent asset", MessageType.Info);
+                    if (customAssetToAdd == null)
+                    {
+                        EditorGUILayout.HelpBox("Select an asset that can be a sub-asset of the parent asset", MessageType.Info);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox("The selected asset cannot be a sub-asset of the parent asset", MessageType.Error);
+                    }
                 }
             }
         }
