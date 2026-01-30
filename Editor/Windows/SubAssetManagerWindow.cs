@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 
 namespace StorkStudios.CoreNest
@@ -240,7 +239,7 @@ namespace StorkStudios.CoreNest
                             GenericMenu menu = new GenericMenu();
                             menu.AddItem(new GUIContent("Make into sub-asset"), false, () =>
                             {
-                                SubAssetUtils.MakeIntoSubAsset(asset, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                                SubAssetUtils.MoveIntoSubAsset(asset, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
                                 AssetDatabase.SaveAssets();
                             });
                             menu.AddItem(new GUIContent("Create sub-asset copy"), false, () =>
@@ -282,7 +281,7 @@ namespace StorkStudios.CoreNest
                             GenericMenu menu = new GenericMenu();
                             menu.AddItem(new GUIContent("Move into sub-asset"), false, () =>
                             {
-                                SubAssetUtils.MakeIntoSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
+                                SubAssetUtils.MoveIntoSubAsset(customAssetToAdd, AssetDatabase.GetAssetPath(assetInfo.mainAsset));
                                 AssetDatabase.SaveAssets();
                             });
                             menu.AddItem(new GUIContent("Create sub-asset copy"), false, () =>

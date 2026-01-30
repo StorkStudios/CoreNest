@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -112,7 +111,7 @@ namespace StorkStudios.CoreNest
                 {
                     menu.AddItem(moveSubAssetOption, false, () =>
                     {
-                        SubAssetUtils.MakeIntoSubAsset(currentValue, targetAssetPath);
+                        SubAssetUtils.MoveIntoSubAsset(currentValue, targetAssetPath);
                         AssetDatabase.SaveAssets();
                     });
                 }
@@ -169,7 +168,7 @@ namespace StorkStudios.CoreNest
                 switch (choice)
                 {
                     case 0:
-                        SubAssetUtils.MakeIntoSubAsset(newValue, targetAssetPath);
+                        SubAssetUtils.MoveIntoSubAsset(newValue, targetAssetPath);
                         AssetDatabase.SaveAssets();
                         break;
                     case 2:
