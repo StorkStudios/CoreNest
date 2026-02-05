@@ -128,7 +128,6 @@ namespace StorkStudios.CoreNest
                 {
                     if (subAsset == asset)
                     {
-                        Debug.Log("bulech");
                         continue;
                     }
 
@@ -142,6 +141,14 @@ namespace StorkStudios.CoreNest
             {
                 AssetDatabase.DeleteAsset(path);
             }
+        }
+
+        /// <summary>
+        /// Determines whether the specified asset is a sub-asset located at the given path.
+        /// </summary>
+        public static bool IsSubAssetOf(Object asset, string parentPath)
+        {
+            return AssetDatabase.IsSubAsset(asset) && AssetDatabase.GetAssetPath(asset) == parentPath;
         }
     }
 }

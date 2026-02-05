@@ -177,6 +177,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
             <li><details><summary>IsSubAssetUsedInAsset</summary>Checks if given sub-asset is assigned to any property (serializable by unity) of the asset</detials></li>
             <li><details><summary>MakeSubAssetCopy</summary>Instantiates a copy of given asset and adds it to the given path</detials></li>
             <li><details><summary>MoveIntoSubAsset</summary>Removes the asset from its current file and adds it to the given path. If given asset is the main asset all of the sub-assets are moved with it</detials></li>
+            <li><details><summary>IsSubAssetOf</summary>Determines whether the specified asset is a sub-asset of the asset at the given path</detials></li>
         </ul></detials></li>
     </ul></details></li>
 </ul></details></li>

@@ -8,9 +8,6 @@ namespace StorkStudios.CoreNest
     [CustomPropertyDrawer(typeof(SubAssetAttribute))]
     public class SubAssetDrawer : PropertyDrawer
     {
-        private static readonly GUIContent moveSubAssetOption = new GUIContent("Move into sub-asset");
-        private static readonly GUIContent copySubAssetOption = new GUIContent("Create sub-asset copy");
-
         private static System.Type GetPropertyType(SerializedProperty property)
         {
             return property.GetFieldInfo()?.FieldType ?? property.GetArrayElementPropertyType();
@@ -33,7 +30,7 @@ namespace StorkStudios.CoreNest
             return propertyTypeCheck && isAssetCheck;
         }
 
-        private static string GetTargetAssetPath(Object target)
+        private static string GetTargetAsset(Object target)
         {
             string path = AssetDatabase.GetAssetPath(target);
             if (!string.IsNullOrEmpty(path))
@@ -56,11 +53,6 @@ namespace StorkStudios.CoreNest
             return null;
         }
 
-        private static bool IsSubAssetOf(Object asset, string parentPath)
-        {
-            return AssetDatabase.IsSubAsset(asset) && AssetDatabase.GetAssetPath(asset) == parentPath;
-        }
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if (!IsPropertyTypeSupported(property))
@@ -81,7 +73,7 @@ namespace StorkStudios.CoreNest
             }
 
             Object targetObject = property.serializedObject.targetObject;
-            string targetAssetPath = GetTargetAssetPath(targetObject);
+            string targetAssetPath = GetTargetAsset(targetObject);
             string targetAssetName = System.IO.Path.GetFileName(targetAssetPath);
 
             Object oldValue = property.objectReferenceValue;
@@ -97,44 +89,8 @@ namespace StorkStudios.CoreNest
             position.yMin += 1;
             position.yMax = position.yMin + buttonStyle.fixedHeight;
 
-            if (GUI.Button(position, EditorGUIUtility.IconContent("d__Menu@2x"), buttonStyle))
-            {
-                Object currentValue = property.objectReferenceValue;
+            SubAssetManagerWindow.DrawSubAssetMenu(position, buttonStyle, property.objectReferenceValue, targetAssetPath, true, copy => property.objectReferenceValue = copy);
 
-                GenericMenu menu = new GenericMenu();
-
-                menu.AddItem(new GUIContent("Open sub-asset manager"), false, () => SubAssetManagerWindow.Open(targetObject));
-
-                bool canInstanceBeSubAsset = SubAssetUtils.CanInstanceBeSubAsset(currentValue, targetAssetPath);
-
-                if (currentValue != null && canInstanceBeSubAsset)
-                {
-                    menu.AddItem(moveSubAssetOption, false, () =>
-                    {
-                        SubAssetUtils.MoveIntoSubAsset(currentValue, targetAssetPath);
-                        AssetDatabase.SaveAssets();
-                    });
-                }
-                else
-                {
-                    menu.AddDisabledItem(moveSubAssetOption);
-                }
-
-                if (currentValue != null && canInstanceBeSubAsset && !IsSubAssetOf(currentValue, targetAssetPath))
-                {
-                    menu.AddItem(copySubAssetOption, false, () =>
-                    {
-                        property.objectReferenceValue = SubAssetUtils.MakeSubAssetCopy(currentValue, targetAssetPath);
-                        AssetDatabase.SaveAssets();
-                    });
-                }
-                else
-                {
-                    menu.AddDisabledItem(copySubAssetOption);
-                }
-                menu.DropDown(position);
-            }
-            
             if (EditorGUI.EndChangeCheck())
             {
                 ReactToChanges(property, oldValue, targetAssetPath, targetAssetName);
@@ -149,7 +105,7 @@ namespace StorkStudios.CoreNest
                 return;
             }
 
-            if (oldValue != null && IsSubAssetOf(oldValue, targetAssetPath))
+            if (oldValue != null && SubAssetUtils.IsSubAssetOf(oldValue, targetAssetPath))
             {
                 property.serializedObject.ApplyModifiedProperties();
                 if (!AssetDatabase.LoadAllAssetsAtPath(targetAssetPath).Any(e => SubAssetUtils.IsSubAssetUsedInAsset(oldValue, e)))
