@@ -14,7 +14,7 @@ namespace StorkStudios.CoreNest
             if (property.propertyType != SerializedPropertyType.ObjectReference)
             {
                 string message = "Edit object in inspector can only be used with UnityEngine.Object";
-                GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
+                GUIContent content = new GUIContent(EditorGUIUtility.IconContent("console.warnicon"));
                 content.text = message;
                 FieldInfo field = property.GetFieldInfo();
                 content.tooltip = $"{field.DeclaringType.Name}.{field.Name}";

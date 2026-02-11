@@ -162,12 +162,23 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         <li><details><summary>ReadOnlyAttribute</summary>Disables editing of this property in inspector</detials></li>
         <li><details><summary>RequireInterfaceAttribute</summary>Add checks and searching for the objects that implement provided interface. When using with generic interfaces they must inherit from <code>IGenericInterface</code></detials></li>
         <li><details><summary>ShowIfAttribute</summary>Only draws this property or invoke button if provided boolean member (field, property or parameterless method) evaluates to true</detials></li>
+        <li><details><summary>SubAssetAttribute</summary>Draws a custom menu for a property to make managing assigned sub-assets more convenient</detials></li>
     </ul></details></li>
     <li><details><summary>Windows</summary><ul>
         <li><details><summary>FindScriptWindow</summary>A window for finding scripts and missing scripts in scenes and prefabs in project</detials></li>
+        <li><details><summary>SubAssetManagerWindow</summary>A window for managing sub-assets. Can be used to add, remove and rename sub-assets inside a given asset file</detials></li>
     </ul></details></li>
-    <li><details><summary>Other</summary><ul>
-        <li><details><summary>FindScriptWindow</summary>A window for finding scripts and missing scripts in scenes and prefabs in project</detials></li>
+    <li><details><summary>Utils</summary><ul>
+        <li><details><summary>InlineEditor</summary>A custom class for drawing a rich object editor that can be used inside any editor draw function</detials></li>
+        <li><details><summary>SubAssetUtils</summary>This contains utility functions when managing sub-assets inside the editor<ul>
+            <li><details><summary>CanTypeBeSubAsset</summary>Checks if specified type is inheriting from <code>UnityEngine.Object</code> and not from runtime types: <code>Component</code>, <code>GameObject</code> and <code>Shader</code>; and also editor types: <code>SceneAsset</code>, <code>DefaultAsset</code> and <code>MonoScript</code></detials></li>
+            <li><details><summary>CanInstanceBeSubAsset</summary>Checks if given object isn't already located at given path and if it's not a internal unity Builtin Asset</detials></li>
+            <li><details><summary>IsBuiltinAsset</summary>Checks if asset has a spoof GUID which indicates that it's builtin</detials></li>
+            <li><details><summary>IsSubAssetUsedInAsset</summary>Checks if given sub-asset is assigned to any property (serializable by unity) of the asset</detials></li>
+            <li><details><summary>MakeSubAssetCopy</summary>Instantiates a copy of given asset and adds it to the given path</detials></li>
+            <li><details><summary>MoveIntoSubAsset</summary>Removes the asset from its current file and adds it to the given path. If given asset is the main asset all of the sub-assets are moved with it</detials></li>
+            <li><details><summary>IsSubAssetOf</summary>Determines whether the specified asset is a sub-asset of the asset at the given path</detials></li>
+        </ul></detials></li>
     </ul></details></li>
 </ul></details></li>
 </ul>
