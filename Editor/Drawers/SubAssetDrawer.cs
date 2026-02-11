@@ -16,18 +16,27 @@ namespace StorkStudios.CoreNest
         private static bool IsPropertyTypeSupported(SerializedProperty property)
         {
             System.Type propertyType = GetPropertyType(property);
-            bool propertyTypeCheck = property.propertyType == SerializedPropertyType.ObjectReference &&
+            bool isPropertyTypeSupported = property.propertyType == SerializedPropertyType.ObjectReference &&
                                      SubAssetUtils.CanTypeBeSubAsset(propertyType, true);
+            if (!isPropertyTypeSupported)
+            {
+                return false;
+            }
 
             Object targetObject = property.serializedObject.targetObject;
-            bool isAssetCheck = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(targetObject)) ||
+            bool isTargetAnAsset = !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(targetObject)) ||
                                 PrefabUtility.IsPartOfAnyPrefab(targetObject);
 
+            if (isTargetAnAsset)
+            {
+                return true;
+            }
+
+            // prefabs inside prefab editor are considered as scene objects so the PrefabUtility.IsPartOfAnyPrefab returns false
+            // we need to check if we are currently editing a prefab that contains this serialized property
             PrefabStage stage = PrefabStageUtility.GetCurrentPrefabStage();
             bool isInPrefabMode = stage != null && targetObject is Component c && c.gameObject.scene == stage.scene;
-            isAssetCheck |= isInPrefabMode;
-
-            return propertyTypeCheck && isAssetCheck;
+            return isInPrefabMode;
         }
 
         private static string GetTargetAsset(Object target)
