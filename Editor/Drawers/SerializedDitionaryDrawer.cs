@@ -35,7 +35,7 @@ namespace StorkStudios.CoreNest
 
             if (list.serializedProperty.isExpanded)
             {
-                list.DoList(position);
+                list.DoList(EditorGUI.IndentedRect(position));
             }
 
             EditorGUI.EndProperty();
@@ -59,7 +59,7 @@ namespace StorkStudios.CoreNest
 
             if (state.list.serializedProperty.isExpanded)
             {
-                result += state.list.GetHeight();
+                result += state.list.GetHeight() + EditorGUIUtility.standardVerticalSpacing;
             }
 
             return result;
@@ -92,7 +92,7 @@ namespace StorkStudios.CoreNest
         {
             GUIStyle style = GUIStyles.ListFoldout;
             
-            Rect backgroundRect = rect;
+            Rect backgroundRect = EditorGUI.IndentedRect(rect);
             backgroundRect.xMin = backgroundRect.xMin - style.padding.left + style.margin.left;
             backgroundRect.x += style.margin.right;
             backgroundRect.xMin -= 1;
@@ -104,7 +104,7 @@ namespace StorkStudios.CoreNest
             // hack to make the background hover effect update properly
             // OnGUI doesn't get called on MouseMove event so the background wouldn't update
             // the performance should be the same as calling Repaint in an Editor class
-            if (Event.current.type == EventType.Repaint)
+            if (Event.current.type == EventType.Layout)
             {
                 GUI.changed = true;
             }

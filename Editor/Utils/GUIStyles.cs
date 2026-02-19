@@ -5,7 +5,7 @@ namespace StorkStudios.CoreNest
 {
     public class GUIStyles
     {
-        public const float listCountFieldWidth = 48;
+        public const float listCountFieldWidth = 63;
 
         public readonly static GUIStyle Bold;
 
