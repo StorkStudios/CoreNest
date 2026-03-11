@@ -29,35 +29,55 @@ namespace StorkStudios.CoreNest
             if (TryGetPathToTargetFolder() && !string.IsNullOrEmpty(pathToTargetFolder) && File.Exists(FilePath))
             {
                 Debug.LogWarning($"{name + extension} file already exists");
-                UpdateFile();
+                SaveContentToFile(GetNewFileContent(), null);
                 return;
             }
 
             Directory.CreateDirectory(Path.Combine(Application.dataPath, assetPath));
-            File.Create(Path.Combine(Application.dataPath, assetPath, name + extension));
-            UpdateFile();
+            FileStream file = File.Create(Path.Combine(Application.dataPath, assetPath, name + extension));
+            SaveContentToFile(GetNewFileContent(), file);
+        }
+
+        private void SaveContentToFile(string content, FileStream file)
+        {
+            currentFileContent = content;
+
+            file ??= File.OpenWrite(FilePath);
+
+            file.SetLength(0);
+            file.Write(System.Text.Encoding.UTF8.GetBytes(content));
+
+            file.Close();
+
+            //force unity to reimport this script so it recompiles it and doesn't throw warnings that "the file has been modified and unity doesn't know when"
+            AssetDatabase.ImportAsset(Path.Combine("Assets", assetPath, name + extension));
         }
 
         public void UpdateFile()
         {
-            if (!TryGetPathToTargetFolder() || string.IsNullOrEmpty(pathToTargetFolder))
+            if (!TryGetPathToTargetFolder() || string.IsNullOrEmpty(pathToTargetFolder) || !File.Exists(FilePath))
             {
                 return;
             }
 
+            FileStream file = null;
             if (string.IsNullOrEmpty(currentFileContent))
             {
-                TryGetCurrentFileContent();
+                file = File.Open(FilePath, FileMode.Open, FileAccess.ReadWrite);
+                using (StreamReader reader = new StreamReader(file))
+                {
+                    currentFileContent = reader.ReadToEnd();
+                }
             }
 
             string newFileContent = GetNewFileContent();
             if (newFileContent != currentFileContent)
             {
-                currentFileContent = newFileContent;
-                File.WriteAllText(FilePath, currentFileContent);
-
-                //force unity to reimport this script so it recompiles it and doesn't throw warnings that "the file has been modified and unity doesn't know when"
-                AssetDatabase.ImportAsset(Path.Combine("Assets", assetPath, name + extension));
+                SaveContentToFile(newFileContent, file);
+            }
+            else
+            {
+                file?.Close();
             }
         }
 
@@ -65,19 +85,15 @@ namespace StorkStudios.CoreNest
 
         private bool TryGetPathToTargetFolder()
         {
-            pathToTargetFolder = Directory.GetDirectories(Application.dataPath, assetPath).FirstOrDefault();
-            return !string.IsNullOrEmpty(pathToTargetFolder);
-        }
-
-        private bool TryGetCurrentFileContent()
-        {
-            string filePath = FilePath;
-            if (File.Exists(filePath))
+            try
             {
-                currentFileContent = File.ReadAllText(filePath);
-                return true;
+                pathToTargetFolder = Directory.GetDirectories(Application.dataPath, assetPath).FirstOrDefault();
+                return !string.IsNullOrEmpty(pathToTargetFolder);
             }
-            return false;
+            catch (DirectoryNotFoundException)
+            {
+                return false;
+            }
         }
 
         public static string ReplaceSpecialCharacters(string str, string specialCharacterRegex = "[^a-zA-Z0-9]", string replacement = "_")
