@@ -29,7 +29,11 @@ namespace StorkStudios.CoreNest
             if (TryGetPathToTargetFolder() && !string.IsNullOrEmpty(pathToTargetFolder) && File.Exists(FilePath))
             {
                 Debug.LogWarning($"{name + extension} file already exists");
-                SaveContentToFile(GetNewFileContent(), null);
+                string newFileContent = GetNewFileContent();
+                if (currentFileContent != newFileContent)
+                {
+                    SaveContentToFile(newFileContent, null);
+                }
                 return;
             }
 
