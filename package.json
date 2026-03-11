@@ -1,11 +1,12 @@
 {
-    "name": "com.storkstudios.corenest",
-    "version": "1.0.14",
-    "displayName": "Core'Nest",
-    "description": "Based scripts for unity editorech",
-    "unity": "6000.0",
-    "author": {
-        "name": "Stork'Studios",
-        "url": "https://storkstudios.github.io/"
-    }
+  "name": "com.storkstudios.corenest",
+  "version": "1.0.15",
+  "displayName": "Core'Nest",
+  "description": "Based scripts for unity editorech",
+  "unity": "6000.0",
+  "author": {
+    "name": "Stork'Studios",
+    "url": "https://storkstudios.github.io/"
+  },
+  "documentationUrl": "https://github.com/StorkStudios/CoreNest/blob/main/README.md"
 }
