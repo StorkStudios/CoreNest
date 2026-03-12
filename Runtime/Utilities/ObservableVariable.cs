@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace StorkStudios.CoreNest
 {
+    [System.Serializable]
     public class ObservableVariable<T>
     {
         public delegate void ValueChangedDelegate(T oldValue, T newValue);
@@ -13,17 +15,23 @@ namespace StorkStudios.CoreNest
             get => current;
             set
             {
-                if (EqualityComparer<T>.Default.Equals(current, value))
+                if (current.Equals(value))
                 {
                     return;
                 }
 
                 T oldValue = current;
                 current = value;
-                ValueChanged?.Invoke(oldValue, current);
+                InvokeValueChanged(oldValue, current);
             }
         }
 
+        private void InvokeValueChanged(T oldValue, T current)
+        {
+            ValueChanged?.Invoke(oldValue, current);
+        }
+
+        [SerializeField]
         private T current;
 
         public ObservableVariable()
