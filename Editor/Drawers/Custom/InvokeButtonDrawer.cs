@@ -18,6 +18,53 @@ namespace StorkStudios.CoreNest
 
         private bool foldout;
 
+        private static (object value, Rect position) DrawField(Rect position, string label, Type type, object value)
+        {
+            if (type == typeof(int))
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.IntField(position, label, (int)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else if (type == typeof(float))
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.FloatField(position, label, (float)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else if (type == typeof(string))
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.TextField(position, label, (string)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else if (type == typeof(bool))
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.Toggle(position, label, (bool)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else if (type == typeof(Vector3))
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.Vector3Field(position, label, (Vector3)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.IntField(position, label, (int)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            else if (type.IsEnum)
+            {
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                value = EditorGUI.EnumPopup(position, label, (Enum)value);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+            }
+            return (value, position);
+        }
+
         public InvokeButtonDrawer(MethodInfo method)
         {
             this.method = method;
@@ -48,12 +95,9 @@ namespace StorkStudios.CoreNest
                 labelRect.xMax -= (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
                 foldout = EditorGUI.Foldout(labelRect, foldout, $"Function: {invokeButton.GetNameForMethod(method)}", true);
 
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    Rect buttonRect = position;
-                    buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                    pressed = GUI.Button(buttonRect, "Invoke");
-                }
+                Rect buttonRect = position;
+                buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
+                pressed = GUI.Button(buttonRect, "Invoke");
 
                 position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
 
