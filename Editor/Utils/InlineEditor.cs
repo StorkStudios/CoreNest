@@ -17,7 +17,7 @@ namespace StorkStudios.CoreNest
         private readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
         private readonly Dictionary<MethodInfo, bool> methodFoldoutStates = new Dictionary<MethodInfo, bool>();
 
-        private readonly List<MethodInfo> methods = new List<MethodInfo>();
+        private readonly List<InvokeButtonDrawer> invokeButtonDrawers = new List<InvokeButtonDrawer>();
 
         public InlineEditor(SerializedObject objectToDraw)
         {
@@ -29,11 +29,11 @@ namespace StorkStudios.CoreNest
                 return;
             }
 
-            
-            methods = GetInvokeButtonMethods();
+
+            invokeButtonDrawers = GetInvokeButtonDrawers();
         }
 
-        private List<MethodInfo> GetInvokeButtonMethods()
+        private List<InvokeButtonDrawer> GetInvokeButtonDrawers()
         {
             const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
             System.Type type = serializedObject.targetObject.GetType();
@@ -50,7 +50,8 @@ namespace StorkStudios.CoreNest
                 type = type.BaseType;
             }
             methods.Reverse();
-            return methods;
+
+            return methods.Select(method => new InvokeButtonDrawer(method)).ToList();
         }
 
         public bool DrawInspector()
@@ -108,9 +109,9 @@ namespace StorkStudios.CoreNest
                 }
             }
 
-            foreach (MethodInfo method in methods)
+            foreach (InvokeButtonDrawer drawer in invokeButtonDrawers)
             {
-                FoldoutGroupAttribute foldout = method.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute foldout = drawer.GetCustomAttribute<FoldoutGroupAttribute>();
 
                 if (foldout != null)
                 {
@@ -122,14 +123,14 @@ namespace StorkStudios.CoreNest
                 }
                 else
                 {
-                    ShowIfAttribute showIf = method.GetCustomAttribute<ShowIfAttribute>();
+                    ShowIfAttribute showIf = drawer.GetCustomAttribute<ShowIfAttribute>();
                     if (showIf != null)
                     {
-                        position = ShowIfDrawer.Draw(position, method, showIf, serializedObject.targetObjects, position => DrawInvokeButton(position, method));
+                        position = ShowIfDrawer.Draw(position, drawer.Method, showIf, serializedObject.targetObjects, position => drawer.Draw(position, serializedObject));
                     }
                     else
                     {
-                        position = DrawInvokeButton(position, method);
+                        position = drawer.Draw(position, serializedObject);
                     }
                 }
             }
@@ -190,7 +191,10 @@ namespace StorkStudios.CoreNest
 
         private Rect DrawFoldoutGroupButtons(Rect position, string id, bool drawHeader)
         {
-            IEnumerable<MethodInfo> methodsWithFoldout = methods.Where(e => e.GetCustomAttribute<FoldoutGroupAttribute>() != null);
+            IEnumerable<InvokeButtonDrawer> drawersWithFoldout = invokeButtonDrawers.Where(e => {
+                FoldoutGroupAttribute f = e.GetCustomAttribute<FoldoutGroupAttribute>();
+                return f != null && f.Id == id;
+                });
 
             if (!foldoutStates.ContainsKey(id))
             {
@@ -199,7 +203,7 @@ namespace StorkStudios.CoreNest
 
             if (drawHeader)
             {
-                string header = methodsWithFoldout.First(e => e.GetCustomAttribute<FoldoutGroupAttribute>().Id == id).GetCustomAttribute<FoldoutGroupAttribute>().Header;
+                string header = drawersWithFoldout.First().GetCustomAttribute<FoldoutGroupAttribute>().Header;
 
                 position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
                 foldoutStates[id] = EditorGUI.Foldout(position, foldoutStates[id], header, true);
@@ -213,76 +217,19 @@ namespace StorkStudios.CoreNest
 
             using (new EditorGUI.IndentLevelScope())
             {
-                foreach (MethodInfo method in methodsWithFoldout.Where(e => e.GetCustomAttribute<FoldoutGroupAttribute>().Id == id))
+                foreach (InvokeButtonDrawer drawer in drawersWithFoldout)
                 {
-                    ShowIfAttribute showIf = method.GetCustomAttribute<ShowIfAttribute>();
+                    ShowIfAttribute showIf = drawer.GetCustomAttribute<ShowIfAttribute>();
                     if (showIf != null)
                     {
-                        position = ShowIfDrawer.Draw(position, method, showIf, serializedObject.targetObjects, position => DrawInvokeButton(position, method));
+                        position = ShowIfDrawer.Draw(position, drawer.Method, showIf, serializedObject.targetObjects, position => drawer.Draw(position, serializedObject));
                     }
                     else
                     {
-                        position = DrawInvokeButton(position, method);
+                        position = drawer.Draw(position, serializedObject);
                     }
                 }
             }
-            return position;
-        }
-
-        private Rect DrawInvokeButton(Rect position, MethodInfo method)
-        {
-            InvokeButtonAttribute invokeButton = method.GetCustomAttribute<InvokeButtonAttribute>();
-
-            bool pressed = false;
-
-            if (method.GetParameters().Length > 0)
-            {
-                if (!methodFoldoutStates.ContainsKey(method))
-                {
-                    methodFoldoutStates[method] = false;
-                }
-
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-
-                Rect labelRect = position;
-                labelRect.xMax -= (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                methodFoldoutStates[method] = EditorGUI.Foldout(labelRect, methodFoldoutStates[method], $"Function: {invokeButton.GetNameForMethod(method)}", true);
-
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    Rect buttonRect = position;
-                    buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                    pressed = GUI.Button(buttonRect, "Invoke");
-                }
-
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-
-                if (methodFoldoutStates[method])
-                {
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        //TODO: methods with parameters
-                        position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                        EditorGUI.LabelField(position, "Methods with parameters are not supported yet.");
-                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-                    }
-                }
-            }
-            else
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                pressed = GUI.Button(position, invokeButton.GetNameForMethod(method));
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-                
-            if (pressed)
-            {
-                foreach (Object target in serializedObject.targetObjects)
-                {
-                    method.Invoke(target, null);
-                }
-            }
-            
             return position;
         }
 
@@ -329,12 +276,12 @@ namespace StorkStudios.CoreNest
                 }
             }
 
-            foreach (MethodInfo method in methods)
+            foreach (InvokeButtonDrawer drawer in invokeButtonDrawers)
             {
                 bool wouldDraw = true;
                 float height = 0;
 
-                FoldoutGroupAttribute foldout = method.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute foldout = drawer.GetCustomAttribute<FoldoutGroupAttribute>();
 
                 if (foldout != null)
                 {
@@ -348,16 +295,10 @@ namespace StorkStudios.CoreNest
 
                 if (wouldDraw)
                 {
-                    height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
-                    if (methodFoldoutStates.TryGetValue(method, out bool visible) && visible)
-                    {
-                        //TODO: methods with parameters
-                        height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                    }
+                    height += drawer.GetHeight();
                 }
 
-                ShowIfAttribute showIf = method.GetCustomAttribute<ShowIfAttribute>();
+                ShowIfAttribute showIf = drawer.GetCustomAttribute<ShowIfAttribute>();
 
                 if (showIf != null)
                 {
