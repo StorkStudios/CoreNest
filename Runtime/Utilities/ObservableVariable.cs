@@ -15,7 +15,7 @@ namespace StorkStudios.CoreNest
             get => current;
             set
             {
-                if (current.Equals(value))
+                if ((current != null && current.Equals(value)) || value == null)
                 {
                     return;
                 }
