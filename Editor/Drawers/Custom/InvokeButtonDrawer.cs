@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -7,68 +8,46 @@ namespace StorkStudios.CoreNest
 {
     public class InvokeButtonDrawer
     {
+        private class Parameter
+        {
+            private FieldInfo wrappedField;
+            private ScriptableObject wrappingObject;
+            private Editor editor;
+
+            public Parameter(ParameterInfo info)
+            {
+                Type generatedType = ScriptableObjectGenerator.GetScriptableObjectWrapperType(info.Name, info.ParameterType);
+                wrappingObject = ScriptableObject.CreateInstance(generatedType);
+                wrappedField = generatedType.GetField(info.Name);
+                editor = Editor.CreateEditor(wrappingObject);
+            }
+
+            public object GetValue()
+            {
+                return wrappedField.GetValue(wrappingObject);
+            }
+
+            public void DrawEditor()
+            {
+                editor.OnInspectorGUI();
+            }
+        }
+
         public MethodInfo Method => method;
         public string FoldoutGroupID => foldoutGroup?.Id;
 
         private MethodInfo method;
-        private ParameterInfo[] parameters;
+        private Parameter[] parameters;
         private InvokeButtonAttribute invokeButton;
 
         private FoldoutGroupAttribute foldoutGroup;
 
         private bool foldout;
 
-        private static (object value, Rect position) DrawField(Rect position, string label, Type type, object value)
-        {
-            if (type == typeof(int))
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.IntField(position, label, (int)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else if (type == typeof(float))
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.FloatField(position, label, (float)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else if (type == typeof(string))
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.TextField(position, label, (string)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else if (type == typeof(bool))
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.Toggle(position, label, (bool)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else if (type == typeof(Vector3))
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.Vector3Field(position, label, (Vector3)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.IntField(position, label, (int)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            else if (type.IsEnum)
-            {
-                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                value = EditorGUI.EnumPopup(position, label, (Enum)value);
-                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
-            }
-            return (value, position);
-        }
-
         public InvokeButtonDrawer(MethodInfo method)
         {
             this.method = method;
-            parameters = method.GetParameters();
+            parameters = method.GetParameters().Select(p => new Parameter(p)).ToArray();
             invokeButton = GetCustomAttribute<InvokeButtonAttribute>();
         }
 
@@ -105,6 +84,11 @@ namespace StorkStudios.CoreNest
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
+                        foreach (var param in parameters)
+                        {
+                            param.DrawEditor();
+                        }
+
                         //TODO: methods with parameters
                         position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
                         EditorGUI.LabelField(position, "Methods with parameters are not supported yet.");
