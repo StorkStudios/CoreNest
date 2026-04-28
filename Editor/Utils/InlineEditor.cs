@@ -15,7 +15,6 @@ namespace StorkStudios.CoreNest
         private readonly HashSet<string> drawnFoldouts = new HashSet<string>();
 
         private readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
-        private readonly Dictionary<MethodInfo, bool> methodFoldoutStates = new Dictionary<MethodInfo, bool>();
 
         private readonly List<InvokeButtonDrawer> invokeButtonDrawers = new List<InvokeButtonDrawer>();
 

@@ -26,9 +26,14 @@ namespace StorkStudios.CoreNest
 
         private static readonly Dictionary<string, Type> createdTypes = new Dictionary<string, Type>();
 
-        public static Type GetScriptableObjectWrapperType(string fieldName, Type fieldType)
+        public static Type GetScriptableObjectParametersWrapper(MethodInfo methodInfo)
         {
-            string className = $"{fieldType.FullName.Replace('.', '_').Replace('`', '_')}_{fieldName}";
+            if (methodInfo.GetParameters().Length <= 0)
+            {
+                return null;
+            }
+
+            string className = $"{methodInfo.DeclaringType.FullName.Replace('.', '_').Replace('`', '_')}_{methodInfo.Name}_ParametersWrapper";
             className = char.ToUpper(className[0]) + className[1..];
 
             if (createdTypes.TryGetValue(className, out Type type))
@@ -37,24 +42,54 @@ namespace StorkStudios.CoreNest
             }
 
             //todo check if is serializable
-            if (!fieldType.IsUnitySerializable())
-            {
-                return null;
-            }
 
-            type = CreateScriptableObjectWrapperType(className, fieldName, fieldType);
+            type = CreateScriptableObjectParametersWrapperType(className, methodInfo);
             createdTypes.Add(className, type);
             return type;
         }
 
-        private static Type CreateScriptableObjectWrapperType(string className, string fieldName, Type fieldType)
+        private static Type CreateScriptableObjectParametersWrapperType(string className, MethodInfo methodInfo)
         {
             TypeBuilder typeBuilder = moduleBuilder.DefineType(
                 $"{assemblyName}.{className}",
                 TypeAttributes.NotPublic,
                 typeof(ScriptableObject));
 
-            typeBuilder.DefineField(fieldName, fieldType, FieldAttributes.Public);
+            typeBuilder.AddInterfaceImplementation(typeof(IMethodParameters));
+
+            List<FieldBuilder> fields = new List<FieldBuilder>();
+            foreach (ParameterInfo parameter in methodInfo.GetParameters())
+            {
+                fields.Add(typeBuilder.DefineField(parameter.Name, parameter.ParameterType, FieldAttributes.Public));
+            }
+
+            MethodBuilder methodBuilder = typeBuilder.DefineMethod(
+                "GetValues",
+                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
+                typeof(object[]),
+                Type.EmptyTypes);
+
+            ILGenerator il = methodBuilder.GetILGenerator();
+
+            il.Emit(OpCodes.Ldc_I4, fields.Count);
+            il.Emit(OpCodes.Newarr, typeof(object));
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                il.Emit(OpCodes.Dup);
+                il.Emit(OpCodes.Ldc_I4, i);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, fields[i]);
+                if (fields[i].FieldType.IsValueType)
+                {
+                    il.Emit(OpCodes.Box, fields[i].FieldType);
+                }
+                il.Emit(OpCodes.Stelem_Ref);
+            }
+
+            il.Emit(OpCodes.Ret);
+
+            typeBuilder.DefineMethodOverride(methodBuilder, typeof(IMethodParameters).GetMethod("GetValues"));
 
             return typeBuilder.CreateType();
         }

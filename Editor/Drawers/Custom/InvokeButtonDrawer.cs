@@ -8,36 +8,12 @@ namespace StorkStudios.CoreNest
 {
     public class InvokeButtonDrawer
     {
-        private class Parameter
-        {
-            private FieldInfo wrappedField;
-            private ScriptableObject wrappingObject;
-            private Editor editor;
-
-            public Parameter(ParameterInfo info)
-            {
-                Type generatedType = ScriptableObjectGenerator.GetScriptableObjectWrapperType(info.Name, info.ParameterType);
-                wrappingObject = ScriptableObject.CreateInstance(generatedType);
-                wrappedField = generatedType.GetField(info.Name);
-                editor = Editor.CreateEditor(wrappingObject);
-            }
-
-            public object GetValue()
-            {
-                return wrappedField.GetValue(wrappingObject);
-            }
-
-            public void DrawEditor()
-            {
-                editor.OnInspectorGUI();
-            }
-        }
-
         public MethodInfo Method => method;
         public string FoldoutGroupID => foldoutGroup?.Id;
 
         private MethodInfo method;
-        private Parameter[] parameters;
+        private IMethodParameters parameters;
+        private Editor parametersEditor;
         private InvokeButtonAttribute invokeButton;
 
         private FoldoutGroupAttribute foldoutGroup;
@@ -47,7 +23,12 @@ namespace StorkStudios.CoreNest
         public InvokeButtonDrawer(MethodInfo method)
         {
             this.method = method;
-            parameters = method.GetParameters().Select(p => new Parameter(p)).ToArray();
+            Type parametersWrapperType = ScriptableObjectGenerator.GetScriptableObjectParametersWrapper(method);
+            if (parametersWrapperType != null)
+            {
+                parameters = ScriptableObject.CreateInstance(parametersWrapperType) as IMethodParameters;
+                parametersEditor = Editor.CreateEditor(parameters as ScriptableObject);
+            }
             invokeButton = GetCustomAttribute<InvokeButtonAttribute>();
         }
 
@@ -60,7 +41,7 @@ namespace StorkStudios.CoreNest
         {
             bool pressed = false;
 
-            if (parameters.Length <= 0)
+            if (parameters == null)
             {
                 position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
                 pressed = GUI.Button(position, invokeButton.GetNameForMethod(method));
@@ -84,10 +65,7 @@ namespace StorkStudios.CoreNest
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        foreach (var param in parameters)
-                        {
-                            param.DrawEditor();
-                        }
+                        parametersEditor.OnInspectorGUI();
 
                         //TODO: methods with parameters
                         position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
@@ -101,7 +79,7 @@ namespace StorkStudios.CoreNest
             {
                 foreach (UnityEngine.Object target in serializedObject.targetObjects)
                 {
-                    method.Invoke(target, null);
+                    method.Invoke(target, parameters?.GetValues());
                 }
             }
 
