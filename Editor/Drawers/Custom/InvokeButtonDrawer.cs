@@ -11,14 +11,14 @@ namespace StorkStudios.CoreNest
         public MethodInfo Method => method;
         public string FoldoutGroupID => foldoutGroup?.Id;
 
-        private MethodInfo method;
-        private IMethodParameters parameters;
-        private Editor parametersEditor;
-        private InvokeButtonAttribute invokeButton;
+        private readonly MethodInfo method;
+        private readonly IMethodParameters parameters;
+        private readonly InlineEditor parametersEditor;
+        private readonly InvokeButtonAttribute invokeButton;
 
-        private FoldoutGroupAttribute foldoutGroup;
+        private readonly FoldoutGroupAttribute foldoutGroup;
 
-        private bool foldout;
+        private bool isExpanded;
 
         public InvokeButtonDrawer(MethodInfo method)
         {
@@ -27,7 +27,7 @@ namespace StorkStudios.CoreNest
             if (parametersWrapperType != null)
             {
                 parameters = ScriptableObject.CreateInstance(parametersWrapperType) as IMethodParameters;
-                parametersEditor = Editor.CreateEditor(parameters as ScriptableObject);
+                parametersEditor = new InlineEditor(new SerializedObject(parameters as ScriptableObject)) { drawScriptField = false };
             }
             invokeButton = GetCustomAttribute<InvokeButtonAttribute>();
         }
@@ -53,7 +53,7 @@ namespace StorkStudios.CoreNest
 
                 Rect labelRect = position;
                 labelRect.xMax -= (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                foldout = EditorGUI.Foldout(labelRect, foldout, $"Function: {invokeButton.GetNameForMethod(method)}", true);
+                isExpanded = EditorGUI.Foldout(labelRect, isExpanded, $"Function: {invokeButton.GetNameForMethod(method)}", true);
 
                 Rect buttonRect = position;
                 buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
@@ -61,16 +61,11 @@ namespace StorkStudios.CoreNest
 
                 position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
 
-                if (foldout)
+                if (isExpanded)
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        parametersEditor.OnInspectorGUI();
-
-                        //TODO: methods with parameters
-                        position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                        EditorGUI.LabelField(position, "Methods with parameters are not supported yet.");
-                        position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                        parametersEditor.DrawInspector(position, out position);
                     }
                 }
             }
@@ -90,10 +85,16 @@ namespace StorkStudios.CoreNest
         {
             float height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-            if (foldout)
+            if (isExpanded)
             {
-                //TODO: methods with parameters
-                height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                if (parameters != null)
+                {
+                    height += parametersEditor.GetHeight();
+                }
+                else
+                {
+                    height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                }
             }
 
             return height;

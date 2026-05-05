@@ -11,6 +11,8 @@ namespace StorkStudios.CoreNest
     /// </summary>
     public class InlineEditor
     {
+        public bool drawScriptField = true;
+
         private readonly SerializedObject serializedObject;
         private readonly HashSet<string> drawnFoldouts = new HashSet<string>();
 
@@ -56,10 +58,10 @@ namespace StorkStudios.CoreNest
         public bool DrawInspector()
         {
             Rect rect = EditorGUILayout.GetControlRect(GUILayout.Height(GetHeight()));
-            return DrawInspector(rect);
+            return DrawInspector(rect, out _);
         }
 
-        public bool DrawInspector(Rect position)
+        public bool DrawInspector(Rect position, out Rect nextPosition)
         {
             EditorGUI.BeginChangeCheck();
             serializedObject.UpdateIfRequiredOrScript();
@@ -75,6 +77,7 @@ namespace StorkStudios.CoreNest
                 if (iterator.propertyPath == "m_Script")
                 {
                     using (new EditorGUI.DisabledScope(true))
+                    if (drawScriptField)
                     {
                         float height = EditorGUI.GetPropertyHeight(iterator);
                         position.yMax = position.yMin + height;
@@ -140,6 +143,7 @@ namespace StorkStudios.CoreNest
                 serializedObject.ApplyModifiedProperties();
             }
 
+            nextPosition = position;
             return changed;
         }
 
@@ -245,7 +249,10 @@ namespace StorkStudios.CoreNest
 
                 if (iterator.propertyPath == "m_Script")
                 {
-                    result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+                    if (drawScriptField)
+                    {
+                        result += EditorGUI.GetPropertyHeight(iterator) + EditorGUIUtility.standardVerticalSpacing;
+                    }
                     continue;
                 }
 
