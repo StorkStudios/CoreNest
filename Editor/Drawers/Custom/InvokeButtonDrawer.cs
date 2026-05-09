@@ -18,16 +18,20 @@ namespace StorkStudios.CoreNest
 
         private readonly FoldoutGroupAttribute foldoutGroup;
 
-        private bool isExpanded;
+        private bool hasCorrectParameters = true;
+        private bool isExpanded = false;
 
         public InvokeButtonDrawer(MethodInfo method)
         {
             this.method = method;
-            Type parametersWrapperType = ScriptableObjectGenerator.GetScriptableObjectParametersWrapper(method);
-            if (parametersWrapperType != null)
+            if (method.GetParameters().Length > 0)
             {
-                parameters = ScriptableObject.CreateInstance(parametersWrapperType) as IMethodParameters;
-                parametersEditor = new InlineEditor(new SerializedObject(parameters as ScriptableObject)) { drawScriptField = false };
+                hasCorrectParameters = ScriptableObjectTypeGenerator.TryGetScriptableObjectParametersWrapper(method, out Type parametersWrapperType);
+                if (hasCorrectParameters)
+                {
+                    parameters = ScriptableObject.CreateInstance(parametersWrapperType) as IMethodParameters;
+                    parametersEditor = new InlineEditor(new SerializedObject(parameters as ScriptableObject)) { drawScriptField = false };
+                }
             }
             invokeButton = GetCustomAttribute<InvokeButtonAttribute>();
         }
@@ -41,7 +45,7 @@ namespace StorkStudios.CoreNest
         {
             bool pressed = false;
 
-            if (parameters == null)
+            if (parameters == null && hasCorrectParameters)
             {
                 position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
                 pressed = GUI.Button(position, invokeButton.GetNameForMethod(method));
@@ -57,7 +61,10 @@ namespace StorkStudios.CoreNest
 
                 Rect buttonRect = position;
                 buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                pressed = GUI.Button(buttonRect, "Invoke");
+                using (new EditorGUI.DisabledScope(!hasCorrectParameters))
+                {
+                    pressed = GUI.Button(buttonRect, "Invoke");
+                }
 
                 position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
 
@@ -65,7 +72,16 @@ namespace StorkStudios.CoreNest
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        parametersEditor.DrawInspector(position, out position);
+                        if (hasCorrectParameters)
+                        {
+                            parametersEditor.DrawInspector(position, out position);
+                        }
+                        else
+                        {
+                            position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                            EditorGUI.LabelField(position, "Method has parameters but some aren't serializable.");
+                            position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+                        }
                     }
                 }
             }

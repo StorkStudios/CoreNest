@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace StorkStudios.CoreNest
 {
-    public static class ScriptableObjectGenerator
+    public static class ScriptableObjectTypeGenerator
     {
         private const string assemblyName = "StorkStudios.CoreNest.DynamicAssembly";
 
@@ -26,26 +26,34 @@ namespace StorkStudios.CoreNest
 
         private static readonly Dictionary<string, Type> createdTypes = new Dictionary<string, Type>();
 
-        public static Type GetScriptableObjectParametersWrapper(MethodInfo methodInfo)
+        public static bool TryGetScriptableObjectParametersWrapper(MethodInfo methodInfo, out Type type)
         {
+            type = null;
+
             if (methodInfo.GetParameters().Length <= 0)
             {
-                return null;
+                return false;
             }
 
             string className = $"{methodInfo.DeclaringType.FullName.Replace('.', '_').Replace('`', '_')}_{methodInfo.Name}_ParametersWrapper";
             className = char.ToUpper(className[0]) + className[1..];
 
-            if (createdTypes.TryGetValue(className, out Type type))
+            if (createdTypes.TryGetValue(className, out type))
             {
-                return type;
+                return true;
             }
 
-            //todo check if is serializable
+            foreach (ParameterInfo parameterInfo in methodInfo.GetParameters())
+            {
+                if (!parameterInfo.ParameterType.IsUnitySerializable())
+                {
+                    return false;
+                }
+            }
 
             type = CreateScriptableObjectParametersWrapperType(className, methodInfo);
             createdTypes.Add(className, type);
-            return type;
+            return true;
         }
 
         private static Type CreateScriptableObjectParametersWrapperType(string className, MethodInfo methodInfo)
