@@ -18,21 +18,18 @@ namespace StorkStudios.CoreNest
 
         private readonly FoldoutGroupAttribute foldoutGroup;
 
-        private bool hasCorrectParameters = true;
         private bool isExpanded = false;
 
         public InvokeButtonDrawer(MethodInfo method)
         {
             this.method = method;
-            if (method.GetParameters().Length > 0)
+
+            parameters = ScriptableObjectTypeGenerator.CreateParametersWrapperInstance(method) as IMethodParameters;
+            if (parameters != null)
             {
-                hasCorrectParameters = ScriptableObjectTypeGenerator.TryGetScriptableObjectParametersWrapper(method, out Type parametersWrapperType);
-                if (hasCorrectParameters)
-                {
-                    parameters = ScriptableObject.CreateInstance(parametersWrapperType) as IMethodParameters;
-                    parametersEditor = new InlineEditor(new SerializedObject(parameters as ScriptableObject)) { drawScriptField = false };
-                }
+                parametersEditor = new InlineEditor(new SerializedObject(parameters as ScriptableObject)) { drawScriptField = false };
             }
+
             invokeButton = GetCustomAttribute<InvokeButtonAttribute>();
         }
 
@@ -45,7 +42,7 @@ namespace StorkStudios.CoreNest
         {
             bool pressed = false;
 
-            if (parameters == null && hasCorrectParameters)
+            if (parameters?.Count <= 0)
             {
                 position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
                 pressed = GUI.Button(position, invokeButton.GetNameForMethod(method));
@@ -61,7 +58,7 @@ namespace StorkStudios.CoreNest
 
                 Rect buttonRect = position;
                 buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                using (new EditorGUI.DisabledScope(!hasCorrectParameters))
+                using (new EditorGUI.DisabledScope(parameters == null))
                 {
                     pressed = GUI.Button(buttonRect, "Invoke");
                 }
@@ -72,7 +69,7 @@ namespace StorkStudios.CoreNest
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        if (hasCorrectParameters)
+                        if (parameters != null)
                         {
                             parametersEditor.DrawInspector(position, out position);
                         }
