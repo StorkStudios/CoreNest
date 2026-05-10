@@ -71,7 +71,7 @@ namespace StorkStudios.CoreNest
                     {
                         if (parameters != null)
                         {
-                            parametersEditor.DrawInspector(position, out position);
+                            position = parametersEditor.DrawInspector(position);
                         }
                         else
                         {

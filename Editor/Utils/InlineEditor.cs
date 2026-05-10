@@ -55,13 +55,13 @@ namespace StorkStudios.CoreNest
             return methods.Select(method => new InvokeButtonDrawer(method)).ToList();
         }
 
-        public bool DrawInspector()
+        public Rect DrawInspector()
         {
             Rect rect = EditorGUILayout.GetControlRect(GUILayout.Height(GetHeight()));
-            return DrawInspector(rect, out _);
+            return DrawInspector(rect);
         }
 
-        public bool DrawInspector(Rect position, out Rect nextPosition)
+        public Rect DrawInspector(Rect position)
         {
             EditorGUI.BeginChangeCheck();
             serializedObject.UpdateIfRequiredOrScript();
@@ -143,8 +143,7 @@ namespace StorkStudios.CoreNest
                 serializedObject.ApplyModifiedProperties();
             }
 
-            nextPosition = position;
-            return changed;
+            return position;
         }
 
         private Rect DrawFoldoutGroup(SerializedProperty property, Rect position)
