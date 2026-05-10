@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -9,14 +8,13 @@ namespace StorkStudios.CoreNest
     public class InvokeButtonDrawer
     {
         public MethodInfo Method => method;
-        public string FoldoutGroupID => foldoutGroup?.Id;
 
         private readonly MethodInfo method;
         private readonly IMethodParameters parameters;
         private readonly InlineEditor parametersEditor;
         private readonly InvokeButtonAttribute invokeButton;
 
-        private readonly FoldoutGroupAttribute foldoutGroup;
+        private bool HasProperParameters => parameters != null;
 
         private bool isExpanded = false;
 
@@ -24,16 +22,17 @@ namespace StorkStudios.CoreNest
         {
             this.method = method;
 
+            invokeButton = GetMethodAttribute<InvokeButtonAttribute>()
+                ?? throw new ArgumentException($"Method {method.Name} does not have an InvokeButtonAttribute.");
+
             parameters = ScriptableObjectTypeGenerator.CreateParametersWrapperInstance(method) as IMethodParameters;
             if (parameters != null)
             {
                 parametersEditor = new InlineEditor(new SerializedObject(parameters as ScriptableObject)) { drawScriptField = false };
             }
-
-            invokeButton = GetCustomAttribute<InvokeButtonAttribute>();
         }
 
-        public T GetCustomAttribute<T>() where T : Attribute
+        public T GetMethodAttribute<T>() where T : Attribute
         {
             return method.GetCustomAttribute<T>();
         }
@@ -58,7 +57,7 @@ namespace StorkStudios.CoreNest
 
                 Rect buttonRect = position;
                 buttonRect.xMin += (position.width + EditorGUIUtility.standardVerticalSpacing) / 2;
-                using (new EditorGUI.DisabledScope(parameters == null))
+                using (new EditorGUI.DisabledScope(!HasProperParameters))
                 {
                     pressed = GUI.Button(buttonRect, "Invoke");
                 }
@@ -69,14 +68,14 @@ namespace StorkStudios.CoreNest
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        if (parameters != null)
+                        if (HasProperParameters)
                         {
                             position = parametersEditor.DrawInspector(position);
                         }
                         else
                         {
                             position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
-                            EditorGUI.LabelField(position, "Method has parameters but some aren't serializable.");
+                            EditorGUI.LabelField(position, "Method has parameters that aren't serializable.");
                             position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
                         }
                     }
@@ -100,7 +99,7 @@ namespace StorkStudios.CoreNest
 
             if (isExpanded)
             {
-                if (parameters != null)
+                if (HasProperParameters)
                 {
                     height += parametersEditor.GetHeight();
                 }

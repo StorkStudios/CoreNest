@@ -113,7 +113,7 @@ namespace StorkStudios.CoreNest
 
             foreach (InvokeButtonDrawer drawer in invokeButtonDrawers)
             {
-                FoldoutGroupAttribute foldout = drawer.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute foldout = drawer.GetMethodAttribute<FoldoutGroupAttribute>();
 
                 if (foldout != null)
                 {
@@ -125,7 +125,7 @@ namespace StorkStudios.CoreNest
                 }
                 else
                 {
-                    ShowIfAttribute showIf = drawer.GetCustomAttribute<ShowIfAttribute>();
+                    ShowIfAttribute showIf = drawer.GetMethodAttribute<ShowIfAttribute>();
                     if (showIf != null)
                     {
                         position = ShowIfDrawer.Draw(position, drawer.Method, showIf, serializedObject.targetObjects, position => drawer.Draw(position, serializedObject));
@@ -194,7 +194,7 @@ namespace StorkStudios.CoreNest
         private Rect DrawFoldoutGroupButtons(Rect position, string id, bool drawHeader)
         {
             IEnumerable<InvokeButtonDrawer> drawersWithFoldout = invokeButtonDrawers.Where(e => {
-                FoldoutGroupAttribute f = e.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute f = e.GetMethodAttribute<FoldoutGroupAttribute>();
                 return f != null && f.Id == id;
                 });
 
@@ -205,7 +205,7 @@ namespace StorkStudios.CoreNest
 
             if (drawHeader)
             {
-                string header = drawersWithFoldout.First().GetCustomAttribute<FoldoutGroupAttribute>().Header;
+                string header = drawersWithFoldout.First().GetMethodAttribute<FoldoutGroupAttribute>().Header;
 
                 position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
                 foldoutStates[id] = EditorGUI.Foldout(position, foldoutStates[id], header, true);
@@ -221,7 +221,7 @@ namespace StorkStudios.CoreNest
             {
                 foreach (InvokeButtonDrawer drawer in drawersWithFoldout)
                 {
-                    ShowIfAttribute showIf = drawer.GetCustomAttribute<ShowIfAttribute>();
+                    ShowIfAttribute showIf = drawer.GetMethodAttribute<ShowIfAttribute>();
                     if (showIf != null)
                     {
                         position = ShowIfDrawer.Draw(position, drawer.Method, showIf, serializedObject.targetObjects, position => drawer.Draw(position, serializedObject));
@@ -286,7 +286,7 @@ namespace StorkStudios.CoreNest
                 bool wouldDraw = true;
                 float height = 0;
 
-                FoldoutGroupAttribute foldout = drawer.GetCustomAttribute<FoldoutGroupAttribute>();
+                FoldoutGroupAttribute foldout = drawer.GetMethodAttribute<FoldoutGroupAttribute>();
 
                 if (foldout != null)
                 {
@@ -303,7 +303,7 @@ namespace StorkStudios.CoreNest
                     height += drawer.GetHeight();
                 }
 
-                ShowIfAttribute showIf = drawer.GetCustomAttribute<ShowIfAttribute>();
+                ShowIfAttribute showIf = drawer.GetMethodAttribute<ShowIfAttribute>();
 
                 if (showIf != null)
                 {
