@@ -25,11 +25,33 @@ namespace StorkStudios.CoreNest
 
         private static readonly ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName, true);
 
-        private static readonly Dictionary<string, Type> createdTypes = new Dictionary<string, Type>();
+        private static readonly Dictionary<string, ScriptableObject> createdWrappers = new Dictionary<string, ScriptableObject>();
         private static readonly Dictionary<string, Type> invalidTypes = new Dictionary<string, Type>();
 
         private static readonly Type emptyWrapperType = CreateParametersWrapperType("EmptyParametersWrapper", null);
         private static readonly ScriptableObject emptyWrapperInstance = ScriptableObject.CreateInstance(emptyWrapperType);
+
+        static ScriptableObjectTypeGenerator()
+        {
+            emptyWrapperInstance.hideFlags = HideFlags.DontSave;
+        }
+
+        [InitializeOnLoadMethod]
+        public static void Initialize()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= Cleanup;
+            AssemblyReloadEvents.beforeAssemblyReload += Cleanup;
+        }
+
+        private static void Cleanup()
+        {
+            foreach (ScriptableObject wrapper in createdWrappers.Values)
+            {
+                UnityEngine.Object.DestroyImmediate(wrapper);
+            }
+            createdWrappers.Clear();
+            invalidTypes.Clear();
+        }
 
         public static ScriptableObject CreateParametersWrapperInstance(MethodInfo methodInfo)
         {
@@ -46,21 +68,23 @@ namespace StorkStudios.CoreNest
                 return null;
             }
 
-            if (createdTypes.TryGetValue(className, out Type type))
+            if (createdWrappers.TryGetValue(className, out ScriptableObject instance))
             {
-                return ScriptableObject.CreateInstance(type);
+                return instance;
             }
 
-            type = CreateParametersWrapperType(className, methodInfo);
-            ScriptableObject instance = ScriptableObject.CreateInstance(type);
+            Type type = CreateParametersWrapperType(className, methodInfo);
+            instance = ScriptableObject.CreateInstance(type);
+            instance.hideFlags = HideFlags.DontSave;
 
             if (!ValidateWrapper(instance, methodInfo))
             {
                 invalidTypes.Add(className, type);
+                UnityEngine.Object.DestroyImmediate(instance);
                 return null;
             }
 
-            createdTypes.Add(className, type);
+            createdWrappers.Add(className, instance);
             return instance;
         }
 
