@@ -30,7 +30,6 @@ namespace StorkStudios.CoreNest
                 return;
             }
 
-
             invokeButtonDrawers = GetInvokeButtonDrawers();
         }
 
@@ -67,7 +66,6 @@ namespace StorkStudios.CoreNest
             serializedObject.UpdateIfRequiredOrScript();
             drawnFoldouts.Clear();
             SerializedProperty iterator = serializedObject.GetIterator();
-
 
             bool enterChildren = true;
             while (iterator.NextVisible(enterChildren))
