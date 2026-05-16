@@ -156,7 +156,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
     <li><details><summary>Rich Inspector Attributes</summary>This package contains a customized default <code>UnityEngine.Object</code> editor that allows for more handy inspector attributes<ul>
         <li><details><summary>EditObjectInInspectorAttribute</summary>Creates a foldout for <code>UnityEngine.Object</code> containing its editor</detials></li>
         <li><details><summary>FoldoutGroup</summary>Creates a foldout for all properties or invoke buttons with the same foldout id. The foldout is drawn in place of the first property or invoke button with this attribute and id</detials></li>
-        <li><details><summary>InvokeButton</summary>Creates an inspector button for this method. Currently only parameterless methods are supported.</detials></li>
+        <li><details><summary>InvokeButton</summary>Creates an inspector button for this method.</detials></li>
         <li><details><summary>MinMaxRangeAttribute</summary>Creates MinMaxSlider for this property. Only works with <code>RangeBoundariesFloat</code> and <code>Vector2</code></detials></li>
         <li><details><summary>NotNullAttribute</summary>Draws an error icon when object reference value of this property is null</detials></li>
         <li><details><summary>ReadOnlyAttribute</summary>Disables editing of this property in inspector</detials></li>
