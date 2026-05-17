@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace StorkStudios.CoreNest
@@ -15,7 +14,7 @@ namespace StorkStudios.CoreNest
             get => current;
             set
             {
-                if (current.Equals(value))
+                if (Equals(current, value))
                 {
                     return;
                 }

@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -95,7 +94,7 @@ namespace StorkStudios.CoreNest
                 if (state.sendEvents && (state.runInEditMode || EditorApplication.isPlaying))
                 {
                     object newValue = valueProperty.boxedValue;
-                    if (!current.Equals(newValue))
+                    if (!Equals(current, newValue))
                     {
                         FieldInfo propertyInfo = property.GetFieldInfo();
                         MethodInfo valueChangedEvent = propertyInfo.FieldType.GetMethod("InvokeValueChanged", BindingFlags.Instance | BindingFlags.NonPublic);
