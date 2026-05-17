@@ -22,7 +22,9 @@ namespace StorkStudios.CoreNest
             SerializedProperty actionProperty = property.FindPropertyRelative("action");
             SerializedProperty bindingIdProperty = property.FindPropertyRelative("bindingId");
 
+            position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
             property.isExpanded = EditorGUI.Foldout(position, property.isExpanded, label, true);
+            position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
 
             if (!property.isExpanded)
             {
@@ -31,8 +33,13 @@ namespace StorkStudios.CoreNest
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(actionProperty);
-                int newSelectedBindingIndex = EditorGUILayout.Popup("Binding", state.selectedBindingIndex, state.bindingOptions.Select(e => e.name).ToArray());
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                EditorGUI.PropertyField(position, actionProperty);
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
+
+                position.yMax = position.yMin + EditorGUIUtility.singleLineHeight;
+                int newSelectedBindingIndex = EditorGUI.Popup(position, "Binding", state.selectedBindingIndex, state.bindingOptions.Select(e => e.name).ToArray());
+                position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
 
                 if (newSelectedBindingIndex != state.selectedBindingIndex)
                 {
@@ -43,6 +50,18 @@ namespace StorkStudios.CoreNest
             }
 
             RefreshBindingOptions(property, state);
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+
+            if (property.isExpanded)
+            {
+                height += 2 * (EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight);
+            }
+
+            return height;
         }
 
         protected override State CreateState(SerializedProperty property)
