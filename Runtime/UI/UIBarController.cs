@@ -15,20 +15,13 @@ namespace StorkStudios.CoreNest
         private List<Image> images = new List<Image>();
 
         [Header("Config")]
+        public bool animateColor;
+        [ShowIf(nameof(animateColor))]
         [SerializeField]
-        private bool animateColor;
-        [SerializeField]
-        private Gradient gradient;
+        private Gradient gradient = new Gradient();
 
-        [Header("Debug")]
-        [SerializeField]
-        [Range(0, 1)]
-        private float value;
-
-        private void OnValidate()
-        {
-            ChangeValue(value, 1);
-        }
+        public List<Image> Images => images;
+        public Gradient Gradient => gradient;
 
         /// <summary>
         /// Updates images with progress specified by the <paramref name="currentValue"/> and possible <paramref name="maxValue"/>.
@@ -59,16 +52,16 @@ namespace StorkStudios.CoreNest
             }
         }
 
-        /// <summary>
-        /// Sets the <see cref="Behaviour.enabled"/> value of the image at the specified index in the <see cref="images"/> list.
-        /// </summary>
-        public void ImageSetEnabled(int index, bool enabled)
+#if UNITY_EDITOR
+        [Header("Debug")]
+        [SerializeField]
+        [Range(0, 1)]
+        private float value;
+
+        private void OnValidate()
         {
-            if (index > images.Count || index < 0)
-            {
-                return;
-            }
-            images[index].enabled = enabled;
+            ChangeValue(value, 1);
         }
+#endif
     }
 }
