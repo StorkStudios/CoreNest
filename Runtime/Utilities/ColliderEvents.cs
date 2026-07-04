@@ -7,40 +7,40 @@ namespace StorkStudios.CoreNest
     {
         [SerializeField]
         [FoldoutGroup("Collision 3D")]
-        private UnityEvent<Collision> collisionEntered = new UnityEvent<Collision>();
+        private Trigger<Collision> collisionEntered = new();
         [SerializeField]
         [FoldoutGroup("Collision 3D")]
-        private UnityEvent<Collision> collisionStayed = new UnityEvent<Collision>();
+        private Trigger<Collision> collisionStayed = new();
         [SerializeField]
         [FoldoutGroup("Collision 3D")]
-        private UnityEvent<Collision> collisionExited = new UnityEvent<Collision>();
+        private Trigger<Collision> collisionExited = new();
         [SerializeField]
         [FoldoutGroup("Collision 2D")]
-        private UnityEvent<Collision2D> collisionEntered2D = new UnityEvent<Collision2D>();
+        private Trigger<Collision2D> collisionEntered2D = new();
         [SerializeField]
         [FoldoutGroup("Collision 2D")]
-        private UnityEvent<Collision2D> collisionStayed2D = new UnityEvent<Collision2D>();
+        private Trigger<Collision2D> collisionStayed2D = new();
         [SerializeField]
         [FoldoutGroup("Collision 2D")]
-        private UnityEvent<Collision2D> collisionExited2D = new UnityEvent<Collision2D>();
+        private Trigger<Collision2D> collisionExited2D = new();
         [SerializeField]
         [FoldoutGroup("Trigger 3D")]
-        private UnityEvent<Collider> triggerEntered = new UnityEvent<Collider>();
+        private Trigger<Collider> triggerEntered = new();
         [SerializeField]
         [FoldoutGroup("Trigger 3D")]
-        private UnityEvent<Collider> triggerStayed = new UnityEvent<Collider>();
+        private Trigger<Collider> triggerStayed = new();
         [SerializeField]
         [FoldoutGroup("Trigger 3D")]
-        private UnityEvent<Collider> triggerExited = new UnityEvent<Collider>();
+        private Trigger<Collider> triggerExited = new();
         [SerializeField]
         [FoldoutGroup("Trigger 2D")]
-        private UnityEvent<Collider2D> triggerEntered2D = new UnityEvent<Collider2D>();
+        private Trigger<Collider2D> triggerEntered2D = new();
         [SerializeField]
         [FoldoutGroup("Trigger 2D")]
-        private UnityEvent<Collider2D> triggerStayed2D = new UnityEvent<Collider2D>();
+        private Trigger<Collider2D> triggerStayed2D = new();
         [SerializeField]
         [FoldoutGroup("Trigger 2D")]
-        private UnityEvent<Collider2D> triggerExited2D = new UnityEvent<Collider2D>();
+        private Trigger<Collider2D> triggerExited2D = new();
 
         public event UnityAction<Collision> CollisionEntered
         {
