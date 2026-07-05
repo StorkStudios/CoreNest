@@ -51,7 +51,7 @@ namespace StorkStudios.CoreNest
 
         private readonly static ScriptGenerator generator;
 
-        [MenuItem("Assets/Create/GameControl/TagsFile", priority = -20)]
+        [MenuItem("Assets/Create/Core'Nest/GameControl/TagsFile", priority = -20)]
         private static void CreateAndUpdateTagsFile()
         {
             generator.CreateAndUpdateFile();
