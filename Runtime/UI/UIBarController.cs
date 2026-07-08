@@ -22,10 +22,10 @@ namespace StorkStudios.CoreNest
         private Gradient gradient = new Gradient();
         [SerializeField]
         [ShowIf(nameof(animateColor))]
-        private Color fullFillColor;
+        private Color fullyFilledBarColor;
         [SerializeField]
         [ShowIf(nameof(animateColor))]
-        private float fullFillAnimationDuration;
+        private float fullyFilledBarColorAnimationDuration;
 
         public List<Image> Images => images;
         public Gradient Gradient => gradient;
@@ -61,9 +61,9 @@ namespace StorkStudios.CoreNest
 
                 if (animateColor)
                 {
-                    float delta = Time.deltaTime / fullFillAnimationDuration;
+                    float delta = Time.deltaTime / fullyFilledBarColorAnimationDuration;
                     fullFillFade = Mathf.Clamp01(fullFillFade + (fillAmount >= 1 ? delta : -delta));
-                    image.color = Color.Lerp(gradient.Evaluate(fillAmount), fullFillColor, fullFillFade);
+                    image.color = Color.Lerp(gradient.Evaluate(fillAmount), fullyFilledBarColor, fullFillFade);
                 }
             }
         }
