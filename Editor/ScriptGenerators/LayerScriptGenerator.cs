@@ -52,7 +52,7 @@ namespace StorkStudios.CoreNest
 
         private readonly static ScriptGenerator generator;
 
-        [MenuItem("Assets/Create/GameControl/LayersFile", priority = -20)]
+        [MenuItem("Assets/Create/Core'Nest/GameControl/LayersFile", priority = -20)]
         private static void CreateAndUpdateLayersFile()
         {
             generator.CreateAndUpdateFile();

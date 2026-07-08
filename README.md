@@ -40,6 +40,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         </ul></detials></li>
         <li><details><summary>ActiveCoroutineContext</summary>A persistent context used for coroutines (PersistentSingleton)</detials></li>
         <li><details><summary>Animation Event Converter</summary>Makes managing animation events easier by having them call function name <code>ExternalName</code> with a string argument specifying what UnityEvent to call</detials></li>
+        <li><details><summary>ColliderEvents</summary>A <code>MonoBehaviour</code> that invokes <code>UnityEvents</code> on collider callbacks (<code>On[Enter/Stay/Exit][Tigger/Collision][2D/3D]</code>).</detials></li>
         <li><details><summary>MovingEnvironmentElement</summary>Component allowing for lerping a target transform between two points (position with rotation)</detials></li>
         <li><details><summary>PersistentSingleton</summary>Inherit to make a script a singleton that lives in <code>DontDestroyOnLoad</code> and creates itself when referenced and not present</detials></li>
         <li><details><summary>Singleton</summary>Inherit to make a script a singleton that lives on the current scene (the object containing this must be created manually)</detials></li>
@@ -117,6 +118,12 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
     <li><details><summary>Interfaces</summary><ul>
         <li><details><summary>IGenericInterface</summary>When using <code>RequireInterfaceAttribute</code> with generic interface it must inherit from this for the attribute to work propery</detials></li>
         <li><details><summary>IInvokeable</summary>Used for passing objects that can be invoked (eg. into the <code>LinkedList.RemoveSafeForEach</code> extension to not create garbage by creating lambdas)</detials></li>
+        <li><details><summary>IReadOnlyObservableVariable</summary>Interface for exposing an <code>ObservableVariable</code> without the value setter.</detials></li>
+    </ul></details></li>
+    <li><details><summary>Triggers</summary><ul>
+        <li><details><summary>Trigger</summary>An extension of <code>UnityEvent</code> with additional functionalities (e.g. Debug printing or delay).</detials></li>
+        <li><details><summary>SceneTrigger</summary>A <code>MonoBehaviour</code> that holds a <code>Trigger</code>.</detials></li>
+        <li><details><summary>GlobalTrigger</summary>A <code>ScriptableObject</code> that holds a <code>Trigger</code>.</detials></li>
     </ul></details></li>
     <li><details><summary>Utils</summary><ul>
         <li><details><summary>MathUtils</summary><ul>

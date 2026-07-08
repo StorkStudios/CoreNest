@@ -8,6 +8,7 @@ namespace StorkStudios.CoreNest
     /// <summary>
     /// Component used for creating UI bars that use the <see cref="Image.fillAmount"/> option of the <see cref="Image"/> component.
     /// </summary>
+    [ExecuteAlways]
     public class UIBarController : MonoBehaviour
     {
         [Header("References")]
@@ -15,20 +16,22 @@ namespace StorkStudios.CoreNest
         private List<Image> images = new List<Image>();
 
         [Header("Config")]
+        public bool animateColor;
         [SerializeField]
-        private bool animateColor;
+        [ShowIf(nameof(animateColor))]
+        private Gradient gradient = new Gradient();
         [SerializeField]
-        private Gradient gradient;
+        [ShowIf(nameof(animateColor))]
+        private Color fullyFilledBarColor;
+        [SerializeField]
+        [ShowIf(nameof(animateColor))]
+        private float fullyFilledBarColorAnimationDuration;
 
-        [Header("Debug")]
-        [SerializeField]
-        [Range(0, 1)]
-        private float value;
+        public List<Image> Images => images;
+        public Gradient Gradient => gradient;
 
-        private void OnValidate()
-        {
-            ChangeValue(value, 1);
-        }
+        private float fullFillFade = 0;
+        private float fillAmount = 0; // todo - this should probably be an ObserableVariable<float> or something like that
 
         /// <summary>
         /// Updates images with progress specified by the <paramref name="currentValue"/> and possible <paramref name="maxValue"/>.
@@ -47,28 +50,34 @@ namespace StorkStudios.CoreNest
         /// </summary>
         public void ChangeValue(float currentValue, float maxValue)
         {
-            float t = Mathf.Clamp01(currentValue / maxValue);
+            fillAmount = Mathf.Clamp01(currentValue / maxValue);
+        }
+
+        private void Update()
+        {
             foreach (Image image in images.Where(image => image != null))
             {
-                image.fillAmount = t;
+                image.fillAmount = fillAmount;
 
                 if (animateColor)
                 {
-                    image.color = gradient.Evaluate(t);
+                    float delta = Time.deltaTime / fullyFilledBarColorAnimationDuration;
+                    fullFillFade = Mathf.Clamp01(fullFillFade + (fillAmount >= 1 ? delta : -delta));
+                    image.color = Color.Lerp(gradient.Evaluate(fillAmount), fullyFilledBarColor, fullFillFade);
                 }
             }
         }
 
-        /// <summary>
-        /// Sets the <see cref="Behaviour.enabled"/> value of the image at the specified index in the <see cref="images"/> list.
-        /// </summary>
-        public void ImageSetEnabled(int index, bool enabled)
+#if UNITY_EDITOR
+        [Header("Debug")]
+        [SerializeField]
+        [Range(0, 1)]
+        private float debugFillAmount;
+
+        private void OnValidate()
         {
-            if (index > images.Count || index < 0)
-            {
-                return;
-            }
-            images[index].enabled = enabled;
+            ChangeValue(debugFillAmount, 1);
         }
+#endif
     }
 }
