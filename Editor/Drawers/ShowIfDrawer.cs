@@ -5,8 +5,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-using UObject = UnityEngine.Object;
-
 namespace StorkStudios.CoreNest
 {
     [CustomPropertyDrawer(typeof(ShowIfAttribute))]
@@ -18,7 +16,7 @@ namespace StorkStudios.CoreNest
         {
             showIfAttribute ??= (ShowIfAttribute)attribute;
 
-            UObject[] targets = property.serializedObject.targetObjects;
+            IEnumerable<object> targets = property.GetParentObjects();
 
             Draw(position, property.GetFieldInfo(), showIfAttribute, targets,
                 pos =>
@@ -28,7 +26,7 @@ namespace StorkStudios.CoreNest
                 });
         }
 
-        public static Rect Draw(Rect position, MemberInfo member, ShowIfAttribute attribute, IEnumerable<UObject> targets, Func<Rect, Rect> drawFunction)
+        public static Rect Draw(Rect position, MemberInfo member, ShowIfAttribute attribute, IEnumerable<object> targets, Func<Rect, Rect> drawFunction)
         {
             bool? visible = attribute.ShouldShow(targets.First());
             if (!visible.HasValue)
@@ -66,12 +64,12 @@ namespace StorkStudios.CoreNest
         {
             showIfAttribute ??= (ShowIfAttribute)attribute;
 
-            UObject[] targets = property.serializedObject.targetObjects;
+            IEnumerable<object> targets = property.GetParentObjects();
 
             return GetHeight(EditorGUI.GetPropertyHeight(property), showIfAttribute, targets);
         }
 
-        public static float GetHeight(float normalHeight, ShowIfAttribute attribute, IEnumerable<UObject> targets)
+        public static float GetHeight(float normalHeight, ShowIfAttribute attribute, IEnumerable<object> targets)
         {
             bool? visible = attribute.ShouldShow(targets.First());
             if (!visible.HasValue)

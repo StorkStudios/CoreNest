@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
@@ -6,7 +8,7 @@ namespace StorkStudios.CoreNest
 {
     public static class SerializedPropertyExtensions
     {
-        private const BindingFlags unitySerializableFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+        private const BindingFlags unitySerializableFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
         /// <summary>
         /// Retrieves the reflection metadata for the field represented by the specified serialized property.
@@ -15,16 +17,31 @@ namespace StorkStudios.CoreNest
         public static FieldInfo GetFieldInfo(this SerializedProperty property)
         {
             Type type = property.serializedObject.targetObject.GetType();
-            while (type != null)
+
+            string[] path = property.propertyPath.Split('.');
+
+            FieldInfo field = null;
+            foreach (string fieldName in path)
             {
-                FieldInfo field = type.GetField(property.propertyPath, unitySerializableFlags);
-                if (field != null)
+                Type searchType = type;
+                while (searchType != null)
                 {
-                    return field;
+                    field = searchType.GetField(fieldName, unitySerializableFlags);
+                    if (field != null)
+                    {
+                        break;
+                    }
+                    searchType = searchType.BaseType;
                 }
-                type = type.BaseType;
+
+                if (field == null)
+                {
+                    return null;
+                }
+
+                type = field.FieldType;
             }
-            return null;
+            return field;
         }
 
         /// <summary>
@@ -52,6 +69,25 @@ namespace StorkStudios.CoreNest
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the objects that contain the field represented by the specified serialized property.
+        /// </summary>
+        public static IEnumerable<object> GetParentObjects(this SerializedProperty property)
+        {
+            string[] path = property.propertyPath.Split('.');
+            IEnumerable<object> objs = property.serializedObject.targetObjects;
+            for (int i = 0; i < path.Length - 1; i++)
+            {
+                FieldInfo field = objs.First().GetType().GetField(path[i], unitySerializableFlags);
+                if (field == null)
+                {
+                    return null;
+                }
+                objs = objs.Select(obj => field.GetValue(obj));
+            }
+            return objs;
         }
     }
 }

@@ -33,19 +33,19 @@ namespace StorkStudios.CoreNest
 
             Type type = target.GetType();
             BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
-            MemberInfo member = type.GetMember(ConditionName, bindingFlags).FirstOrDefault();
+            MemberInfo member = type.FindMember(target, ConditionName, bindingFlags, out object parent);
             switch (member)
             {
                 case FieldInfo field:
-                    return field.GetValue(target) as bool?;
+                    return field.GetValue(parent) as bool?;
                 case PropertyInfo property:
-                    return property.GetValue(target) as bool?;
+                    return property.GetValue(parent) as bool?;
                 case MethodInfo method:
                     if (method.GetParameters().Length > 0)
                     {
                         return null;
                     }
-                    return method.Invoke(target, null) as bool?;
+                    return method.Invoke(parent, null) as bool?;
             }
             return null;
         }
