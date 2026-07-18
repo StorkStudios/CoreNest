@@ -68,6 +68,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         <li><details><summary>AnimationCurve</summary><ul>
             <li><details><summary>EvaluateUnclamped</summary>Evaluate curve with time clamped between first and last keyframe time (wiem, że bez sensu, uświadomiłem sobie to jak teraz piszę dokumentację)</detials></li>
             <li><details><summary>GetNormalizedAnimationCurve</summary>Creates a new normalized AnimationCurve. Normalized curve is defined as having all keyframe times and values inside [0, 1] range </detials></li>
+            <li><details><summary>GetDerivativeAt</summary>Calculates the derivative of the AnimationCurve at a given time using finite difference approximation (gets the slope of the line from 2 close points around the value)</detials></li>
         </ul></detials></li>
         <li><details><summary>IEnumerable</summary><ul>
             <li><details><summary>&lt;Vector3>Average</summary>Gets an average (sum / count) vector</detials></li>
@@ -101,6 +102,9 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         <li><details><summary>TMP_TextInfo</summary><ul>
             <li><details><summary>SetCharacterColor</summary>Writes a character color into the text render buffer</detials></li>
             <li><details><summary>GetCharacterColorCorners</summary>Retrieves the colors of the corners of the character quad from the text render buffer</detials></li>
+        </ul></detials></li>
+        <li><details><summary>System.Type</summary><ul>
+            <li><details><summary>FindMember</summary>Finds member (function, field, property) of a given type at specified dot-separated path. Can also return the object instance containing this member</detials></li>
         </ul></detials></li>
         <li><details><summary>Vector2</summary><ul>
             <li><details><summary>ToVector3</summary>Creates a Vector3 from this vector</detials></li>
@@ -158,6 +162,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
     <li><details><summary>Extensions</summary><ul>
         <li><details><summary>SerializedProperty</summary><ul>
             <li><details><summary>GetFieldInfo</summary>Get the reflection field info for the field represented by this serialized property or null if it can't be found</detials></li>
+            <li><details><summary>GetParentObjects</summary>Finds the object (or objects in case of multi-editing) containing the field represented by this serialized property.</detials></li>
         </ul></detials></li>
     </ul></details></li>
     <li><details><summary>Rich Inspector Attributes</summary>This package contains a customized default <code>UnityEngine.Object</code> editor that allows for more handy inspector attributes<ul>
