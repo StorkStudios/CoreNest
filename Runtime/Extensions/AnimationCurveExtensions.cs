@@ -5,13 +5,9 @@ namespace StorkStudios.CoreNest
 {
     public static class AnimationCurveExtensions
     {
-        [System.Flags]
-        public enum NormalizationAxis
-        {
-            X = 1,
-            Y = 2
-        }
-
+        /// <summary>
+        /// Evaluates the AnimationCurve at the specified time, returning the value of the curve at that time. If the time is outside the range of the curve's keyframes, it returns the value of the nearest keyframe (first or last) instead of extrapolating.
+        /// </summary>
         public static float EvaluateUnclamped(this AnimationCurve curve, float time)
         {
             Keyframe first = curve.keys.First();
@@ -23,7 +19,11 @@ namespace StorkStudios.CoreNest
             return time < first.time ? first.value : last.value;
         }
 
-        public static AnimationCurve GetNormalizedAnimationCurve(this AnimationCurve curve, NormalizationAxis axes = NormalizationAxis.X | NormalizationAxis.Y)
+        /// <summary>
+        /// Normalizes the AnimationCurve based on the specified axes (X and/or Y). The normalized curve will have its keyframe times and/or values scaled to fit within the range [0, 1].
+        /// </summary>
+        /// <returns>A new AnimationCurve instance with normalized keyframe times and/or values.</returns>
+        public static AnimationCurve GetNormalizedAnimationCurve(this AnimationCurve curve, Axis2D axes = Axis2D.X | Axis2D.Y)
         {
             AnimationCurve result = new();
 
@@ -41,7 +41,7 @@ namespace StorkStudios.CoreNest
 
             foreach (Keyframe key in curve.keys[1..])
             {
-                if (axes.HasFlag(NormalizationAxis.X))
+                if (axes.HasFlag(Axis2D.X))
                 {
                     if (key.time < minKeyTime)
                     {
@@ -52,7 +52,7 @@ namespace StorkStudios.CoreNest
                         maxKeyTime = key.time;
                     }
                 }
-                if (axes.HasFlag(NormalizationAxis.Y))
+                if (axes.HasFlag(Axis2D.Y))
                 {
                     if (key.value > maxKeyValue)
                     {
@@ -68,11 +68,11 @@ namespace StorkStudios.CoreNest
             foreach (Keyframe key in curve.keys)
             {
                 Keyframe normalizedKey = key;
-                if (axes.HasFlag(NormalizationAxis.X))
+                if (axes.HasFlag(Axis2D.X))
                 {
                     normalizedKey.time = Mathf.InverseLerp(minKeyTime, maxKeyTime, key.time);
                 }
-                if (axes.HasFlag(NormalizationAxis.Y))
+                if (axes.HasFlag(Axis2D.Y))
                 {
                     normalizedKey.value = Mathf.InverseLerp(minKeyValue, maxKeyValue, key.value);
                 }
@@ -81,6 +81,12 @@ namespace StorkStudios.CoreNest
             return result;
         }
 
+        /// <summary>
+        /// Calculates the derivative of the AnimationCurve at a given time using finite difference approximation.
+        /// </summary>
+        /// <param name="curve">The animation curve to evaluate.</param>
+        /// <param name="time">The time (position at the X axis) at which to calculate the derivative.</param>
+        /// <param name="eps">The small offset used for finite difference approximation.</param>
         public static float GetDerivativeAt(this AnimationCurve curve, float time, float eps = 0.001f)
         {
             if (curve == null || curve.length < 1)
