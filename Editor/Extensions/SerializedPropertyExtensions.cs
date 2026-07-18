@@ -76,18 +76,11 @@ namespace StorkStudios.CoreNest
         /// </summary>
         public static IEnumerable<object> GetParentObjects(this SerializedProperty property)
         {
-            string[] path = property.propertyPath.Split('.');
-            IEnumerable<object> objs = property.serializedObject.targetObjects;
-            for (int i = 0; i < path.Length - 1; i++)
+            return property.serializedObject.targetObjects.Select(targetObject =>
             {
-                FieldInfo field = objs.First().GetType().GetField(path[i], unitySerializableFlags);
-                if (field == null)
-                {
-                    return null;
-                }
-                objs = objs.Select(obj => field.GetValue(obj));
-            }
-            return objs;
+                targetObject.GetType().FindMember(targetObject, property.propertyPath, unitySerializableFlags, out object parent);
+                return parent;
+            });
         }
     }
 }
