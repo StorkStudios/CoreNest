@@ -103,6 +103,10 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
             <li><details><summary>SetCharacterColor</summary>Writes a character color into the text render buffer</detials></li>
             <li><details><summary>GetCharacterColorCorners</summary>Retrieves the colors of the corners of the character quad from the text render buffer</detials></li>
         </ul></detials></li>
+        <li><details><summary>Transform</summary><ul>
+            <li><details><summary>Lerp</summary>Interpolates transform's position, localScale and rotation between 2 given transforms using Unity's built-in Lerp methods</detials></li>
+            <li><details><summary>LerpUnclamped</summary>Interpolates transform's position, localScale and rotation between 2 given transforms using Unity's built-in LerpUnclamped methods</detials></li>
+        </ul></detials></li>
         <li><details><summary>System.Type</summary><ul>
             <li><details><summary>FindMember</summary>Finds member (function, field, property) of a given type at specified dot-separated path. Can also return the object instance containing this member</detials></li>
         </ul></detials></li>
