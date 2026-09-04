@@ -6,3 +6,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
 SSCN001  |  Usage  | Error | `[SingletonAttribute]` can only be applied to classes that derive from one of the following base types: `MonoBehaviour`, `ScriptableObject`.
 SSCN002  |  Usage  | Error | `[SingletonAttribute]` can only be applied to partial classes.
+SSCN003  |  Usage  | Error | `[SingletonAttribute]` cannot be applied to generic classes.
