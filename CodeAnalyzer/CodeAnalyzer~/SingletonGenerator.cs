@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Scriban;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,94 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
     [Generator]
     public class SingletonGenerator : IIncrementalGenerator
     {
+        private static readonly Template singletonTemplate = Template.ParseLiquid(@"
+            public partial class {{className}}
+            {
+                public static event Action<{{className}}> OnInitialize;
+
+                public static {{className}} Instance
+                {
+                    get
+                    {
+                        if (!IsInstanced)
+                        {
+                            {{className}} inst = UnityEngine.Object.FindAnyObjectByType<{{className}}>();
+                            if (inst != null)
+                            {
+                                RegisterInstance(inst);
+                            }
+                            else
+                            {
+                                Debug.LogWarning(""Couldn't find {{className}} singleton"");
+                            }
+                        }
+                        return instance;
+                    }
+                }
+
+                private static {{className}} instance;
+
+                public static bool IsInitialized { get; private set; } = false;
+                public static bool IsInstanced { get; private set; } = false;
+
+                public static void CallWhenInitialized(Action<{{className}}> action)
+                {
+                    if (!IsInitialized)
+                    {
+                        action?.Invoke(instance);
+                    }
+                    else
+                    {
+                        void OneShot({{className}} arg)
+                        {
+                            action?.Invoke(instance);
+                            OnInitialize -= OneShot;
+                        }
+                        OnInitialize += OneShot;
+                    }
+                }
+
+                private static void RegisterInstance({{className}} inst)
+                {
+                    if (IsInstanced && instance != inst)
+                    {
+                        Debug.LogError($""More than one instance of singleton {{className}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}"");
+                    }
+                    else
+                    {
+                        instance = inst;
+                        IsInstanced = true;
+                    }
+                }
+
+                private void Awake()
+                {
+                    {{ if hasBeforeAwake }}
+                    BeforeAwake();
+                    {{ end }}
+                    RegisterInstance(this);
+                    IsInitialized = true;
+                    OnInitialize?.Invoke(instance);
+                    {{ if hasAfterAwake }}
+                    AfterAwake();
+                    {{ end }}
+                }
+
+                private void OnDestroy()
+                {
+                    {{ if hasBeforeDestroy }}
+                    BeforeDestroy();
+                    {{ end }}
+                    IsInitialized = false;
+                    IsInstanced = false;
+                    instance = null;
+                    {{ if hasAfterDestroy }}
+                    AfterDestroy();
+                    {{ end }}
+                }
+            }
+        ");
+
         private class ClassInfo
         {
             public ClassDeclarationSyntax DeclarationSyntax { get; set; }
@@ -169,99 +258,14 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
                 indentedWriter.BeginBlock("{");
             }
 
-            indentedWriter.WriteLine($"public partial class {classInfo.TypeSymbol.Name}");
-            using (indentedWriter.WithBlock("{", "}"))
+            indentedWriter.WriteLine(singletonTemplate.Render(new
             {
-                indentedWriter.WriteLine($"public static event Action<{classInfo.TypeSymbol.Name}> OnInitialize;");
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine($"public static {classInfo.TypeSymbol.Name} Instance");
-                using (indentedWriter.WithBlock("{", "}"))
-                {
-                    indentedWriter.WriteLine("get");
-                    using (indentedWriter.WithBlock("{", "}"))
-                    {
-                        indentedWriter.WriteLine("if (!IsInstanced)");
-                        using (indentedWriter.WithBlock("{", "}"))
-                        {
-                            indentedWriter.WriteLine($"{classInfo.TypeSymbol.Name} inst = UnityEngine.Object.FindAnyObjectByType<{classInfo.TypeSymbol.Name}>();");
-                            indentedWriter.WriteLine("if (inst != null)");
-                            using (indentedWriter.WithBlock("{", "}"))
-                            {
-                                indentedWriter.WriteLine("RegisterInstance(inst);");
-                            }
-                            indentedWriter.WriteLine("else");
-                            using (indentedWriter.WithBlock("{", "}"))
-                            {
-                                indentedWriter.WriteLine($"Debug.LogWarning(\"Couldn't find {classInfo.TypeSymbol.Name} singleton\");");
-                            }
-                        }
-                        indentedWriter.WriteLine("return instance;");
-                    }
-                }
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine($"private static {classInfo.TypeSymbol.Name} instance;");
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine("public static bool IsInitialized { get; private set; } = false;");
-                indentedWriter.WriteLine("public static bool IsInstanced { get; private set; } = false;");
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine($"public static void CallWhenInitialized(Action<{classInfo.TypeSymbol.Name}> action)");
-                using (indentedWriter.WithBlock("{", "}"))
-                {
-                    indentedWriter.WriteLine("if (!IsInitialized)");
-                    using (indentedWriter.WithBlock("{", "}"))
-                    {
-                        indentedWriter.WriteLine("action?.Invoke(instance);");
-                    }
-                    indentedWriter.WriteLine("else");
-                    using (indentedWriter.WithBlock("{", "}"))
-                    {
-                        indentedWriter.WriteLine($"void OneShot({classInfo.TypeSymbol.Name} arg)");
-                        using (indentedWriter.WithBlock("{", "}"))
-                        {
-                            indentedWriter.WriteLine("action?.Invoke(instance);");
-                            indentedWriter.WriteLine("OnInitialize -= OneShot;");
-                        }
-                        indentedWriter.WriteLine();
-                        indentedWriter.WriteLine("OnInitialize += OneShot;");
-                    }
-                }
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine($"private static void RegisterInstance({classInfo.TypeSymbol.Name} inst)");
-                using (indentedWriter.WithBlock("{", "}"))
-                {
-                    indentedWriter.WriteLine("if (IsInstanced && instance != inst)");
-                    using (indentedWriter.WithBlock("{", "}"))
-                    {
-                        indentedWriter.WriteLine($"Debug.LogError($\"More than one instance of singleton {classInfo.TypeSymbol.Name} registered. First: {{instance.gameObject.name}}, second: {{inst.gameObject.name}}\");");
-                    }
-                    indentedWriter.WriteLine("else");
-                    using (indentedWriter.WithBlock("{", "}"))
-                    {
-                        indentedWriter.WriteLine("instance = inst;");
-                        indentedWriter.WriteLine("IsInstanced = true;");
-                    }
-                }
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine("private void Awake()");
-                using (indentedWriter.WithBlock("{", "}"))
-                {
-                    AddCallIfExists(indentedWriter, classInfo, "BeforeAwake");
-                    indentedWriter.WriteLine("RegisterInstance(this);");
-                    indentedWriter.WriteLine("IsInitialized = true;");
-                    indentedWriter.WriteLine("OnInitialize?.Invoke(instance);");
-                    AddCallIfExists(indentedWriter, classInfo, "AfterAwake");
-                }
-                indentedWriter.WriteLine();
-                indentedWriter.WriteLine("private void OnDestroy()");
-                using (indentedWriter.WithBlock("{", "}"))
-                {
-                    AddCallIfExists(indentedWriter, classInfo, "BeforeDestroy");
-                    indentedWriter.WriteLine("IsInitialized = false;");
-                    indentedWriter.WriteLine("IsInstanced = false;");
-                    indentedWriter.WriteLine("instance = null;");
-                    AddCallIfExists(indentedWriter, classInfo, "AfterDestroy");
-                }
-            }
+                className = classInfo.TypeSymbol.Name,
+                hasBeforeAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeAwake" && m.Parameters.Length == 0),
+                hasAfterAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterAwake" && m.Parameters.Length == 0),
+                hasBeforeDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeDestroy" && m.Parameters.Length == 0),
+                hasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0)
+            }));
 
             if (!classInfo.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
             {
@@ -269,14 +273,6 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
             }
 
             context.AddSource($"{classInfo.TypeSymbol.Name}.Singleton.g.cs", SourceText.From(sourceStream.ToString(), Encoding.UTF8));
-        }
-
-        private void AddCallIfExists(IndentedTextWriter indentedWriter, ClassInfo classInfo, string methodName)
-        {
-            if (classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == methodName && m.Parameters.Length == 0))
-            {
-                indentedWriter.WriteLine($"{methodName}();");
-            }
         }
     }
 }
