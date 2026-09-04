@@ -41,10 +41,10 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true
         );
-        private static readonly DiagnosticDescriptor ClassNotPartialRule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor ClassNotSealedPartialRule = new DiagnosticDescriptor(
             id: "SSCN002",
-            title: "Class is not partial",
-            messageFormat: "Class '{0}' must be declared partial to be a valid singleton",
+            title: "Class is not sealed partial",
+            messageFormat: "Class '{0}' must be declared sealed partial to be a valid singleton",
             category: "Usage",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true
@@ -53,6 +53,22 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
             id: "SSCN003",
             title: "Class is generic",
             messageFormat: "Class '{0}' must not be generic to be a valid singleton",
+            category: "Usage",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
+        private static readonly DiagnosticDescriptor SingletonAwakeRule = new DiagnosticDescriptor(
+            id: "SSCN004",
+            title: "Class contains Awake method",
+            messageFormat: "Class '{0}' must use AfterAwake or BeforeAwake methods instead of Awake to be a valid singleton",
+            category: "Usage",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true
+        );
+        private static readonly DiagnosticDescriptor SingletonOnDestroyRule = new DiagnosticDescriptor(
+            id: "SSCN005",
+            title: "Class contains OnDestroy method",
+            messageFormat: "Class '{0}' must use AfterDestroy or BeforeDestroy methods instead of OnDestroy to be a valid singleton",
             category: "Usage",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true
@@ -104,16 +120,28 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
                 diagnostics.Add(Diagnostic.Create(InvalidClassDerivationRule, singletonAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
             }
 
-            bool isPartial = classInfo.DeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword);
-            if (!isPartial)
+            bool isSealedPartial = classInfo.DeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword) && classInfo.DeclarationSyntax.Modifiers.Any(SyntaxKind.SealedKeyword);
+            if (!isSealedPartial)
             {
-                diagnostics.Add(Diagnostic.Create(ClassNotPartialRule, singletonAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
+                diagnostics.Add(Diagnostic.Create(ClassNotSealedPartialRule, singletonAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
             }
 
             bool isGeneric = classInfo.TypeSymbol.IsGenericType;
             if (isGeneric)
             {
                 diagnostics.Add(Diagnostic.Create(ClassIsGenericRule, singletonAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
+            }
+
+            IMethodSymbol awakeMethod = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Name == "Awake" && m.Parameters.Length == 0);
+            if (awakeMethod != null)
+            {
+                diagnostics.Add(Diagnostic.Create(SingletonAwakeRule, awakeMethod.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
+            }
+
+            IMethodSymbol onDestroyMethod = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Name == "OnDestroy" && m.Parameters.Length == 0);
+            if (onDestroyMethod != null)
+            {
+                diagnostics.Add(Diagnostic.Create(SingletonOnDestroyRule, onDestroyMethod.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
             }
 
             if (diagnostics.Count > 0)
@@ -214,20 +242,24 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
                     }
                 }
                 indentedWriter.WriteLine();
-                indentedWriter.WriteLine("protected virtual void Awake()");
+                indentedWriter.WriteLine("private void Awake()");
                 using (indentedWriter.WithBlock("{", "}"))
                 {
+                    AddCallIfExists(indentedWriter, classInfo, "BeforeAwake");
                     indentedWriter.WriteLine("RegisterInstance(this);");
                     indentedWriter.WriteLine("IsInitialized = true;");
                     indentedWriter.WriteLine("OnInitialize?.Invoke(instance);");
+                    AddCallIfExists(indentedWriter, classInfo, "AfterAwake");
                 }
                 indentedWriter.WriteLine();
-                indentedWriter.WriteLine("protected virtual void OnDestroy()");
+                indentedWriter.WriteLine("private void OnDestroy()");
                 using (indentedWriter.WithBlock("{", "}"))
                 {
+                    AddCallIfExists(indentedWriter, classInfo, "BeforeDestroy");
                     indentedWriter.WriteLine("IsInitialized = false;");
                     indentedWriter.WriteLine("IsInstanced = false;");
                     indentedWriter.WriteLine("instance = null;");
+                    AddCallIfExists(indentedWriter, classInfo, "AfterDestroy");
                 }
             }
 
@@ -237,6 +269,14 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
             }
 
             context.AddSource($"{classInfo.TypeSymbol.Name}.Singleton.g.cs", SourceText.From(sourceStream.ToString(), Encoding.UTF8));
+        }
+
+        private void AddCallIfExists(IndentedTextWriter indentedWriter, ClassInfo classInfo, string methodName)
+        {
+            if (classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == methodName && m.Parameters.Length == 0))
+            {
+                indentedWriter.WriteLine($"{methodName}();");
+            }
         }
     }
 }
