@@ -16,92 +16,92 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
     [Generator]
     public class SingletonGenerator : IIncrementalGenerator
     {
-        private static readonly Template singletonTemplate = Template.ParseLiquid(@"
-            public partial class {{className}}
+        private static readonly Template singletonTemplate = Template.Parse(@"
+public sealed partial class {{class_name}}
+{
+    public static event Action<{{class_name}}> OnInitialize;
+
+    public static {{class_name}} Instance
+    {
+        get
+        {
+            if (!IsInstanced)
             {
-                public static event Action<{{className}}> OnInitialize;
-
-                public static {{className}} Instance
+                {{class_name}} inst = UnityEngine.Object.FindAnyObjectByType<{{class_name}}>();
+                if (inst != null)
                 {
-                    get
-                    {
-                        if (!IsInstanced)
-                        {
-                            {{className}} inst = UnityEngine.Object.FindAnyObjectByType<{{className}}>();
-                            if (inst != null)
-                            {
-                                RegisterInstance(inst);
-                            }
-                            else
-                            {
-                                Debug.LogWarning(""Couldn't find {{className}} singleton"");
-                            }
-                        }
-                        return instance;
-                    }
+                    RegisterInstance(inst);
                 }
-
-                private static {{className}} instance;
-
-                public static bool IsInitialized { get; private set; } = false;
-                public static bool IsInstanced { get; private set; } = false;
-
-                public static void CallWhenInitialized(Action<{{className}}> action)
+                else
                 {
-                    if (!IsInitialized)
-                    {
-                        action?.Invoke(instance);
-                    }
-                    else
-                    {
-                        void OneShot({{className}} arg)
-                        {
-                            action?.Invoke(instance);
-                            OnInitialize -= OneShot;
-                        }
-                        OnInitialize += OneShot;
-                    }
-                }
-
-                private static void RegisterInstance({{className}} inst)
-                {
-                    if (IsInstanced && instance != inst)
-                    {
-                        Debug.LogError($""More than one instance of singleton {{className}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}"");
-                    }
-                    else
-                    {
-                        instance = inst;
-                        IsInstanced = true;
-                    }
-                }
-
-                private void Awake()
-                {
-                    {{ if hasBeforeAwake }}
-                    BeforeAwake();
-                    {{ end }}
-                    RegisterInstance(this);
-                    IsInitialized = true;
-                    OnInitialize?.Invoke(instance);
-                    {{ if hasAfterAwake }}
-                    AfterAwake();
-                    {{ end }}
-                }
-
-                private void OnDestroy()
-                {
-                    {{ if hasBeforeDestroy }}
-                    BeforeDestroy();
-                    {{ end }}
-                    IsInitialized = false;
-                    IsInstanced = false;
-                    instance = null;
-                    {{ if hasAfterDestroy }}
-                    AfterDestroy();
-                    {{ end }}
+                    Debug.LogWarning(""Couldn't find {{class_name}} singleton"");
                 }
             }
+            return instance;
+        }
+    }
+
+    private static {{class_name}} instance;
+
+    public static bool IsInitialized { get; private set; } = false;
+    public static bool IsInstanced { get; private set; } = false;
+
+    public static void CallWhenInitialized(Action<{{class_name}}> action)
+    {
+        if (!IsInitialized)
+        {
+            action?.Invoke(instance);
+        }
+        else
+        {
+            void OneShot({{class_name}} arg)
+            {
+                action?.Invoke(instance);
+                OnInitialize -= OneShot;
+            }
+            OnInitialize += OneShot;
+        }
+    }
+
+    private static void RegisterInstance({{class_name}} inst)
+    {
+        if (IsInstanced && instance != inst)
+        {
+            Debug.LogError($""More than one instance of singleton {{class_name}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}"");
+        }
+        else
+        {
+            instance = inst;
+            IsInstanced = true;
+        }
+    }
+
+    private void Awake()
+    {
+        {{ if has_before_awake }}
+        BeforeAwake();
+        {{ end }}
+        RegisterInstance(this);
+        IsInitialized = true;
+        OnInitialize?.Invoke(instance);
+        {{ if has_after_awake }}
+        AfterAwake();
+        {{ end }}
+    }
+
+    private void OnDestroy()
+    {
+        {{ if has_before_destroy }}
+        BeforeDestroy();
+        {{ end }}
+        IsInitialized = false;
+        IsInstanced = false;
+        instance = null;
+        {{ if has_after_destroy }}
+        AfterDestroy();
+        {{ end }}
+    }
+}
         ");
 
         private class ClassInfo
@@ -260,11 +260,11 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
 
             indentedWriter.WriteLine(singletonTemplate.Render(new
             {
-                className = classInfo.TypeSymbol.Name,
-                hasBeforeAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeAwake" && m.Parameters.Length == 0),
-                hasAfterAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterAwake" && m.Parameters.Length == 0),
-                hasBeforeDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeDestroy" && m.Parameters.Length == 0),
-                hasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0)
+                ClassName = classInfo.TypeSymbol.Name,
+                HasBeforeAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeAwake" && m.Parameters.Length == 0),
+                HasAfterAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterAwake" && m.Parameters.Length == 0),
+                HasBeforeDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeDestroy" && m.Parameters.Length == 0),
+                HasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0)
             }));
 
             if (!classInfo.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
