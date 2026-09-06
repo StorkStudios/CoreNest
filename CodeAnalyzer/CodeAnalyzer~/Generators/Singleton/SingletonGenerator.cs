@@ -32,7 +32,7 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
         private const string MonoBehaviourFullName = "UnityEngine.MonoBehaviour";
         private const string ScriptableObjectFullName = "UnityEngine.ScriptableObject";
         private static readonly string[] AllowedBaseTypeFullNames = { MonoBehaviourFullName, ScriptableObjectFullName };
-        private const string TemplatePath = "StorkStudios.CoreNest.CodeAnalyzer.Generators.Singleton.SingletonTemplate.scriban";
+        private const string TemplatePath = "StorkStudios.CoreNest.CodeAnalyzer.Generators.Singleton.SingletonTemplate.sbncs";
 
         private static readonly DiagnosticDescriptor InvalidClassDerivationRule = new DiagnosticDescriptor(
             id: "SSCN001",
