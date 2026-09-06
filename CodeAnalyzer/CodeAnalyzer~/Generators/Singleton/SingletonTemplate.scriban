@@ -1,0 +1,85 @@
+public sealed partial class {{class_name}}
+{
+    public static event Action<{{class_name}}> OnInitialize;
+
+    public static {{class_name}} Instance
+    {
+        get
+        {
+            if (!IsInstanced)
+            {
+                {{class_name}} inst = UnityEngine.Object.FindAnyObjectByType<{{class_name}}>();
+                if (inst != null)
+                {
+                    RegisterInstance(inst);
+                }
+                else
+                {
+                    Debug.LogWarning("Couldn't find {{class_name}} singleton");
+                }
+            }
+            return instance;
+        }
+    }
+
+    private static {{class_name}} instance;
+
+    public static bool IsInitialized { get; private set; } = false;
+    public static bool IsInstanced { get; private set; } = false;
+
+    public static void CallWhenInitialized(Action<{{class_name}}> action)
+    {
+        if (!IsInitialized)
+        {
+            action?.Invoke(instance);
+        }
+        else
+        {
+            void OneShot({{class_name}} arg)
+            {
+                action?.Invoke(instance);
+                OnInitialize -= OneShot;
+            }
+            OnInitialize += OneShot;
+        }
+    }
+
+    private static void RegisterInstance({{class_name}} inst)
+    {
+        if (IsInstanced && instance != inst)
+        {
+            Debug.LogError($"More than one instance of singleton {{class_name}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+        }
+        else
+        {
+            instance = inst;
+            IsInstanced = true;
+        }
+    }
+
+    private void Awake()
+    {
+        {{ if has_before_awake }}
+        BeforeAwake();
+        {{ end }}
+        RegisterInstance(this);
+        IsInitialized = true;
+        OnInitialize?.Invoke(instance);
+        {{ if has_after_awake }}
+        AfterAwake();
+        {{ end }}
+    }
+
+    private void OnDestroy()
+    {
+        {{ if has_before_destroy }}
+        BeforeDestroy();
+        {{ end }}
+        IsInitialized = false;
+        IsInstanced = false;
+        instance = null;
+        {{ if has_after_destroy }}
+        AfterDestroy();
+        {{ end }}
+    }
+}

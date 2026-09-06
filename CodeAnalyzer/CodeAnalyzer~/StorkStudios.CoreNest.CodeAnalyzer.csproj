@@ -5,6 +5,8 @@
 		<LangVersion>latest</LangVersion>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<PackageScribanIncludeSource>true</PackageScribanIncludeSource>
+		<RootNamespace>StorkStudios.CoreNest.CodeAnalyzer</RootNamespace>
+		<DefineConstants>SCRIBAN_PUBLIC</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -23,6 +25,8 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
+
+		<EmbeddedResource Include="**\*.scriban" />
 	</ItemGroup>
 	
 	<Target Name="CopyAfterBuild" BeforeTargets="Build">

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CodeAnalyzer
+namespace StorkStudios.CoreNest.CodeAnalyzer
 {
     public class ActionDisposable(Action action) : IDisposable
     {
