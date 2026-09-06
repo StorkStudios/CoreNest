@@ -171,14 +171,15 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
             }
 
             Template template = TemplateRegistry.GetTemplate(TemplatePath);
-            indentedWriter.WriteLine(template.Render(new
+            string renderedClass = template.Render(new
             {
                 ClassName = classInfo.TypeSymbol.Name,
                 HasBeforeAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeAwake" && m.Parameters.Length == 0),
                 HasAfterAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterAwake" && m.Parameters.Length == 0),
                 HasBeforeDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeDestroy" && m.Parameters.Length == 0),
                 HasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0)
-            }));
+            });
+            indentedWriter.WriteLines(renderedClass);
 
             if (!classInfo.TypeSymbol.ContainingNamespace.IsGlobalNamespace)
             {

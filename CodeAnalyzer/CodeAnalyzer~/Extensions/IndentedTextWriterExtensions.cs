@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace StorkStudios.CoreNest.CodeAnalyzer
@@ -23,6 +24,17 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
         {
             writer.Indent -= indentLevel;
             writer.WriteLine(blockEnd);
+        }
+
+        public static void WriteLines(this IndentedTextWriter writer, string multilineText)
+        {
+            using StringReader reader = new(multilineText);
+
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                writer.WriteLine(line);
+            }
         }
     }
 }
