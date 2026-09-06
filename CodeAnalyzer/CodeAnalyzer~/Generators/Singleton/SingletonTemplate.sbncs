@@ -1,13 +1,16 @@
 public sealed partial class {{class_name}}
 {
+{{if is_mono_behaviour}}
     public static event Action<{{class_name}}> OnInitialize;
+{{end}}
 
     public static {{class_name}} Instance
     {
         get
         {
-            if (!IsInstanced)
+            if (!isInstanced)
             {
+            {{if is_mono_behaviour}}
                 {{class_name}} inst = UnityEngine.Object.FindAnyObjectByType<{{class_name}}>();
                 if (inst != null)
                 {
@@ -17,6 +20,20 @@ public sealed partial class {{class_name}}
                 {
                     Debug.LogWarning("Couldn't find {{class_name}} singleton");
                 }
+            {{else}}
+                {{class_name}}[] assets = Resources.LoadAll<{{class_name}}>("");
+                if (assets == null || assets.Length < 1)
+                {
+                    Debug.LogError($"Couldn't find singleton {{class_name}} in Resources folder");
+                    return null;
+                }
+                else if (assets.Length > 1)
+                {
+                    Debug.LogWarning($"Multiple singletons {{class_name}} found in Resources folder");
+                }
+                instance = assets[0];
+                isInstanced = true;
+            {{end}}
             }
             return instance;
         }
@@ -24,9 +41,13 @@ public sealed partial class {{class_name}}
 
     private static {{class_name}} instance;
 
+{{if is_mono_behaviour}}
     public static bool IsInitialized { get; private set; } = false;
-    public static bool IsInstanced { get; private set; } = false;
+    public static bool IsInstanced => isInstanced;
+{{end}}
+    private static bool isInstanced = false;
 
+{{if is_mono_behaviour}}
     public static void CallWhenInitialized(Action<{{class_name}}> action)
     {
         if (!IsInitialized)
@@ -46,14 +67,14 @@ public sealed partial class {{class_name}}
 
     private static void RegisterInstance({{class_name}} inst)
     {
-        if (IsInstanced && instance != inst)
+        if (isInstanced && instance != inst)
         {
             Debug.LogError($"More than one instance of singleton {{class_name}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
         }
         else
         {
             instance = inst;
-            IsInstanced = true;
+            isInstanced = true;
         }
     }
 
@@ -76,10 +97,11 @@ public sealed partial class {{class_name}}
         BeforeDestroy();
         {{ end }}
         IsInitialized = false;
-        IsInstanced = false;
+        isInstanced = false;
         instance = null;
         {{ if has_after_destroy }}
         AfterDestroy();
         {{ end }}
     }
+{{end}}
 }

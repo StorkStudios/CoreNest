@@ -177,7 +177,8 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
                 HasBeforeAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeAwake" && m.Parameters.Length == 0),
                 HasAfterAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterAwake" && m.Parameters.Length == 0),
                 HasBeforeDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeDestroy" && m.Parameters.Length == 0),
-                HasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0)
+                HasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0),
+                IsMonoBehaviour = baseTypeFullName == MonoBehaviourFullName
             });
             indentedWriter.WriteLines(renderedClass);
 
