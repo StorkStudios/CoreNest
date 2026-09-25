@@ -10,30 +10,7 @@ public sealed partial class {{class_name}}
         {
             if (!isInstanced)
             {
-            {{if is_mono_behaviour}}
-                {{class_name}} inst = UnityEngine.Object.FindAnyObjectByType<{{class_name}}>();
-                if (inst != null)
-                {
-                    RegisterInstance(inst);
-                }
-                else
-                {
-                    Debug.LogWarning("Couldn't find {{class_name}} singleton");
-                }
-            {{else}}
-                {{class_name}}[] assets = Resources.LoadAll<{{class_name}}>("");
-                if (assets == null || assets.Length < 1)
-                {
-                    Debug.LogError($"Couldn't find singleton {{class_name}} in Resources folder");
-                    return null;
-                }
-                else if (assets.Length > 1)
-                {
-                    Debug.LogWarning($"Multiple singletons {{class_name}} found in Resources folder");
-                }
-                instance = assets[0];
-                isInstanced = true;
-            {{end}}
+                InitInstance();
             }
             return instance;
         }
@@ -46,6 +23,52 @@ public sealed partial class {{class_name}}
     public static bool IsInstanced => isInstanced;
 {{end}}
     private static bool isInstanced = false;
+
+    private static void InitInstance()
+    {
+    {{if is_mono_behaviour}}
+        {{class_name}} inst = UnityEngine.Object.FindAnyObjectByType<{{class_name}}>();
+        if (inst == null)
+        {
+        {{if persistent}}
+            // awake happens during during gameobject construction
+            inst = new GameObject("{{class_name}}").AddComponent<{{class_name}}>();
+        {{else}}
+            Debug.LogError("Couldn't find {{class_name}} singleton");
+        {{end}}
+        }
+        if (isInstanced && instance != inst && inst != null)
+        {
+            Debug.LogError($"More than one instance of singleton {{class_name}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+        }
+        else if (inst != null)
+        {
+        {{if persistent}}
+            if (inst.GetComponents<Component>().Where(e => !(e is {{class_name}} || e is Transform)).Count() > 0)
+            {
+                Debug.LogWarning($"Game object '{inst.name}' with '{typeof({{class_name}}).Name}' persistent singleton contains additional components. " +
+                    "This object is moved to DontDestroyOnLoad scene so other componets could stop working.");
+            }
+            DontDestroyOnLoad(inst);
+        {{end}}
+            instance = inst;
+            isInstanced = true;
+        }
+    {{else}}
+        {{class_name}}[] assets = Resources.LoadAll<{{class_name}}>("");
+        if (assets == null || assets.Length < 1)
+        {
+            Debug.LogError($"Couldn't find singleton {{class_name}} in Resources folder");
+            return null;
+        }
+        else if (assets.Length > 1)
+        {
+            Debug.LogWarning($"Multiple singletons {{class_name}} found in Resources folder");
+        }
+        instance = assets[0];
+        isInstanced = true;
+    {{end}}
+    }
 
 {{if is_mono_behaviour}}
     public static void CallWhenInitialized(Action<{{class_name}}> action)
@@ -62,19 +85,6 @@ public sealed partial class {{class_name}}
                 OnInitialize -= OneShot;
             }
             OnInitialize += OneShot;
-        }
-    }
-
-    private static void RegisterInstance({{class_name}} inst)
-    {
-        if (isInstanced && instance != inst)
-        {
-            Debug.LogError($"More than one instance of singleton {{class_name}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
-        }
-        else
-        {
-            instance = inst;
-            isInstanced = true;
         }
     }
 

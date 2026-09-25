@@ -74,6 +74,14 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true
         );
+        private static readonly DiagnosticDescriptor SingletonPersistentRule = new DiagnosticDescriptor(
+            id: "SSCN006",
+            title: "Singleton is set to be persistent on ScriptableObject class",
+            messageFormat: "Class '{0}' is unnecessarily set to be persistent but already is a ScriptableObject (a persistent asset)",
+            category: "Usage",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true
+        );
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -154,6 +162,30 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
                 return;
             }
 
+            bool persistent = false;
+            bool autoInit = false;
+            foreach (KeyValuePair<string, TypedConstant> argument in singletonAttribute.NamedArguments)
+            {
+                switch (argument.Key)
+                {
+                    case "Persistent":
+                        {
+                            persistent = argument.Value.Value is bool v && v;
+                            break;
+                        }
+                    case "AutoInit":
+                        {
+                            autoInit = argument.Value.Value is bool v && v;
+                            break;
+                        }
+                }
+            }
+            bool isMonoBehaviour = baseTypeFullName == MonoBehaviourFullName;
+
+            if (persistent && !isMonoBehaviour)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(SingletonPersistentRule, singletonAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), classInfo.TypeSymbol.Name));
+            }
 
             using StringWriter sourceStream = new();
             using IndentedTextWriter indentedWriter = new(sourceStream);
@@ -178,7 +210,9 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
                 HasAfterAwake = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterAwake" && m.Parameters.Length == 0),
                 HasBeforeDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "BeforeDestroy" && m.Parameters.Length == 0),
                 HasAfterDestroy = classInfo.TypeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == "AfterDestroy" && m.Parameters.Length == 0),
-                IsMonoBehaviour = baseTypeFullName == MonoBehaviourFullName
+                IsMonoBehaviour = isMonoBehaviour,
+                Persistent = persistent,
+                AutoInit = autoInit,
             });
             indentedWriter.WriteLines(renderedClass);
 
