@@ -36,7 +36,7 @@ namespace StorkStudios.CoreNest
                 string message = "Show if can only reference bool field, property or parameterless method.";
                 GUIContent content = EditorGUIUtility.IconContent("console.warnicon");
                 content.text = message;
-                content.tooltip = $"{member.DeclaringType.Name}.{member.Name}";
+                content.tooltip = member == null ? null : $"{member.DeclaringType.Name}.{member.Name}";
                 EditorGUI.LabelField(position, content);
 
                 position.yMin = position.yMax + EditorGUIUtility.standardVerticalSpacing;
