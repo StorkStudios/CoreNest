@@ -1,5 +1,17 @@
 public sealed partial class {{class_name}}
 {
+{{if auto_init}}
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void OnAfterSceneLoad()
+    {
+    {{if persistent || !is_mono_behaviour}}
+        InitInstanceIfNeeded(null);
+    {{else}}
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => InitInstanceIfNeeded();
+    {{end}}
+    }
+{{end}}
+
 {{if is_mono_behaviour}}
     public static event Action<{{class_name}}> OnInitialize;
 {{end}}
@@ -8,10 +20,7 @@ public sealed partial class {{class_name}}
     {
         get
         {
-            if (!isInstanced)
-            {
-                InitInstance();
-            }
+            InitInstanceIfNeeded(null);
             return instance;
         }
     }
@@ -24,13 +33,18 @@ public sealed partial class {{class_name}}
 {{end}}
     private static bool isInstanced = false;
 
-    private static void InitInstance()
+    private static void InitInstanceIfNeeded({{class_name}} inst)
     {
+        if (isInstanced)
+        {
+            return;
+        }
+
     {{if is_mono_behaviour}}
-        {{class_name}} inst = UnityEngine.Object.FindAnyObjectByType<{{class_name}}>();
+        inst = inst == null ? UnityEngine.Object.FindAnyObjectByType<{{class_name}}>() : inst;
         if (inst == null)
         {
-        {{if persistent}}
+        {{if auto_init}}
             // awake happens during during gameobject construction
             inst = new GameObject("{{class_name}}").AddComponent<{{class_name}}>();
         {{else}}
@@ -93,7 +107,7 @@ public sealed partial class {{class_name}}
         {{ if has_before_awake }}
         BeforeAwake();
         {{ end }}
-        RegisterInstance(this);
+        InitInstanceIfNeeded(this);
         IsInitialized = true;
         OnInitialize?.Invoke(instance);
         {{ if has_after_awake }}
