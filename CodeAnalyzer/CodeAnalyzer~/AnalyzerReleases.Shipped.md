@@ -9,3 +9,4 @@ SSCN002  |  Usage  | Error | `[SingletonAttribute]` can only be applied to seale
 SSCN003  |  Usage  | Error | `[SingletonAttribute]` cannot be applied to generic classes.
 SSCN004  |  Usage  | Error | A singleton class must use `BeforeAwake` or `AfterAwake` methods instead of `Awake()`. They are called at the beginning of `Awake()` and at the end of `Awake()`, respectively.
 SSCN005  |  Usage  | Error | A singleton class must use `BeforeDestroy` or `AfterDestroy` methods instead of `OnDestroy()`. They are called at the beginning of `OnDestroy()` and at the end of `OnDestroy()`, respectively.
+SSCN006  |  Usage  | Warning | A singleton scriptable object is forced to be persistent (assets are *persistent*) so setting this argument will have no effect.
