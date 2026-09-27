@@ -71,8 +71,14 @@ public sealed partial class {{class_name}}
         {{class_name}}[] assets = Resources.LoadAll<{{class_name}}>("");
         if (assets == null || assets.Length < 1)
         {
+        {{~ if auto_init ~}}
+            instance = UnityEngine.ScriptableObject.CreateInstance<{{class_name}}>();
+            instance.name = "{{class_name}}";
+            isInstanced = true;
+        {{~ else ~}}
             Debug.LogError($"Couldn't find singleton {{class_name}} in Resources folder");
-            return null;
+        {{~ end ~}}
+            return;
         }
         else if (assets.Length > 1)
         {
