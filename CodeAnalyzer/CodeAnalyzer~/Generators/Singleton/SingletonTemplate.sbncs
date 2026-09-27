@@ -1,20 +1,19 @@
 public sealed partial class {{class_name}}
 {
-{{if auto_init}}
+{{~ if auto_init ~}}
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void OnAfterSceneLoad()
     {
-    {{if persistent || !is_mono_behaviour}}
+    {{~ if persistent || !is_mono_behaviour ~}}
         InitInstanceIfNeeded(null);
-    {{else}}
+    {{~ else ~}}
         UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => InitInstanceIfNeeded();
-    {{end}}
+    {{~ end ~}}
     }
-{{end}}
-
-{{if is_mono_behaviour}}
+{{~ end ~}}
+{{~ if is_mono_behaviour ~}}
     public static event Action<{{class_name}}> OnInitialize;
-{{end}}
+{{~ end ~}}
 
     public static {{class_name}} Instance
     {
@@ -27,10 +26,10 @@ public sealed partial class {{class_name}}
 
     private static {{class_name}} instance;
 
-{{if is_mono_behaviour}}
+{{~ if is_mono_behaviour ~}}
     public static bool IsInitialized { get; private set; } = false;
     public static bool IsInstanced => isInstanced;
-{{end}}
+{{~ end ~}}
     private static bool isInstanced = false;
 
     private static void InitInstanceIfNeeded({{class_name}} inst)
@@ -40,16 +39,16 @@ public sealed partial class {{class_name}}
             return;
         }
 
-    {{if is_mono_behaviour}}
+    {{~ if is_mono_behaviour ~}}
         inst = inst == null ? UnityEngine.Object.FindAnyObjectByType<{{class_name}}>() : inst;
         if (inst == null)
         {
-        {{if auto_init}}
+        {{~ if auto_init ~}}
             // awake happens during during gameobject construction
             inst = new GameObject("{{class_name}}").AddComponent<{{class_name}}>();
-        {{else}}
+        {{~ else ~}}
             Debug.LogError("Couldn't find {{class_name}} singleton");
-        {{end}}
+        {{~ end ~}}
         }
         if (isInstanced && instance != inst && inst != null)
         {
@@ -57,18 +56,18 @@ public sealed partial class {{class_name}}
         }
         else if (inst != null)
         {
-        {{if persistent}}
+        {{~ if persistent ~}}
             if (inst.GetComponents<Component>().Where(e => !(e is {{class_name}} || e is Transform)).Count() > 0)
             {
                 Debug.LogWarning($"Game object '{inst.name}' with '{typeof({{class_name}}).Name}' persistent singleton contains additional components. " +
                     "This object is moved to DontDestroyOnLoad scene so other componets could stop working.");
             }
             DontDestroyOnLoad(inst);
-        {{end}}
+        {{~ end ~}}
             instance = inst;
             isInstanced = true;
         }
-    {{else}}
+    {{~ else ~}}
         {{class_name}}[] assets = Resources.LoadAll<{{class_name}}>("");
         if (assets == null || assets.Length < 1)
         {
@@ -81,10 +80,10 @@ public sealed partial class {{class_name}}
         }
         instance = assets[0];
         isInstanced = true;
-    {{end}}
+    {{~ end ~}}
     }
 
-{{if is_mono_behaviour}}
+{{~ if is_mono_behaviour ~}}
     public static void CallWhenInitialized(Action<{{class_name}}> action)
     {
         if (!IsInitialized)
@@ -104,28 +103,28 @@ public sealed partial class {{class_name}}
 
     private void Awake()
     {
-        {{ if has_before_awake }}
+        {{~ if has_before_awake ~}}
         BeforeAwake();
-        {{ end }}
+        {{~ end ~}}
         InitInstanceIfNeeded(this);
         IsInitialized = true;
         OnInitialize?.Invoke(instance);
-        {{ if has_after_awake }}
+        {{~ if has_after_awake ~}}
         AfterAwake();
-        {{ end }}
+        {{~ end ~}}
     }
 
     private void OnDestroy()
     {
-        {{ if has_before_destroy }}
+        {{~ if has_before_destroy ~}}
         BeforeDestroy();
-        {{ end }}
+        {{~ end ~}}
         IsInitialized = false;
         isInstanced = false;
         instance = null;
-        {{ if has_after_destroy }}
+        {{~ if has_after_destroy ~}}
         AfterDestroy();
-        {{ end }}
+        {{~ end ~}}
     }
-{{end}}
+{{~ end ~}}
 }

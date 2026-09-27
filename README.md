@@ -6,6 +6,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
 - Serialized data structures
 - Singletons
 - UI components
+- Roslyn code analyzer and generator
 
 ## Installation
 
