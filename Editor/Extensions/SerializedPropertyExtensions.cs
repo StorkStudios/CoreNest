@@ -21,8 +21,26 @@ namespace StorkStudios.CoreNest
             string[] path = property.propertyPath.Split('.');
 
             FieldInfo field = null;
-            foreach (string fieldName in path)
+            for (int i = 0; i < path.Length; i++)
             {
+                string fieldName = path[i];
+                // Skip "Array.data[i]" parts of array elements' paths
+                if (fieldName == "Array" && i + 1 < path.Length && path[i + 1].StartsWith("data["))
+                {
+                    // Array element itself isn't a field
+                    if (i + 2 == path.Length)
+                    {
+                        return null;
+                    }
+                    type = type.GetCollectionElementType();
+                    if (type == null)
+                    {
+                        return null;
+                    }
+                    i++;
+                    continue;
+                }
+
                 Type searchType = type;
                 while (searchType != null)
                 {
@@ -58,17 +76,7 @@ namespace StorkStudios.CoreNest
             string arrayPropertyPath = property.propertyPath.Split(".Array.data[")[0];
             SerializedProperty arrayProperty = property.serializedObject.FindProperty(arrayPropertyPath);
             FieldInfo arrayFieldInfo = arrayProperty.GetFieldInfo();
-            Type arrayType = arrayFieldInfo.FieldType;
-            if (arrayType.IsArray)
-            {
-                return arrayType.GetElementType();
-            }
-            else if (arrayType.IsGenericType && arrayType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>))
-            {
-                return arrayType.GetGenericArguments()[0];
-            }
-
-            return null;
+            return arrayFieldInfo?.FieldType.GetCollectionElementType();
         }
 
         /// <summary>
