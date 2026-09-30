@@ -5,7 +5,7 @@ namespace StorkStudios.CoreNest
     public static class TransformExtensions
     {
         /// <summary>
-        /// Interpolates transform's position, localScale and rotation using Unity's buildin Lerp methods.
+        /// Interpolates transform's position, localScale and rotation using Unity's built-in Lerp methods.
         /// <see cref="Vector3.Lerp"/>
         /// <see cref="Quaternion.Lerp"/>
         /// </summary>
@@ -18,11 +18,11 @@ namespace StorkStudios.CoreNest
         }
 
         /// <summary>
-        /// Interpolates transform's position, localScale and rotation using Unity's buildin LerpUnclamped methods, allowing extrapolation beyond the end points.
+        /// Interpolates transform's position, localScale and rotation using Unity's built-in LerpUnclamped methods, allowing extrapolation beyond the end points.
         /// <see cref="Vector3.LerpUnclamped"/>
         /// <see cref="Quaternion.LerpUnclamped"/>
         /// </summary>
-        /// <seealso cref="LerpUnclamped"/>
+        /// <seealso cref="Lerp"/>
         public static void LerpUnclamped(this Transform transform, Transform a, Transform b, float t)
         {
             transform.position = Vector3.LerpUnclamped(a.position, b.position, t);

@@ -1,0 +1,136 @@
+public sealed partial class {{class_name}}
+{
+{{~ if auto_init ~}}
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void OnAfterSceneLoad()
+    {
+    {{~ if persistent || !is_mono_behaviour ~}}
+        InitInstanceIfNeeded(null);
+    {{~ else ~}}
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => InitInstanceIfNeeded();
+    {{~ end ~}}
+    }
+{{~ end ~}}
+{{~ if is_mono_behaviour ~}}
+    public static event Action<{{class_name}}> OnInitialize;
+{{~ end ~}}
+
+    public static {{class_name}} Instance
+    {
+        get
+        {
+            InitInstanceIfNeeded(null);
+            return instance;
+        }
+    }
+
+    private static {{class_name}} instance;
+
+{{~ if is_mono_behaviour ~}}
+    public static bool IsInitialized { get; private set; } = false;
+    public static bool IsInstanced => isInstanced;
+{{~ end ~}}
+    private static bool isInstanced = false;
+
+    private static void InitInstanceIfNeeded({{class_name}} inst)
+    {
+        if (isInstanced)
+        {
+            return;
+        }
+
+    {{~ if is_mono_behaviour ~}}
+        inst = inst == null ? UnityEngine.Object.FindAnyObjectByType<{{class_name}}>() : inst;
+        if (inst == null)
+        {
+        {{~ if auto_init ~}}
+            // awake happens during during gameobject construction
+            inst = new GameObject("{{class_name}}").AddComponent<{{class_name}}>();
+        {{~ else ~}}
+            Debug.LogError("Couldn't find {{class_name}} singleton");
+        {{~ end ~}}
+        }
+        if (isInstanced && instance != inst && inst != null)
+        {
+            Debug.LogError($"More than one instance of singleton {{class_name}} registered. First: {instance.gameObject.name}, second: {inst.gameObject.name}");
+        }
+        else if (inst != null)
+        {
+        {{~ if persistent ~}}
+            if (inst.GetComponents<Component>().Where(e => !(e is {{class_name}} || e is Transform)).Count() > 0)
+            {
+                Debug.LogWarning($"Game object '{inst.name}' with '{typeof({{class_name}}).Name}' persistent singleton contains additional components. " +
+                    "This object is moved to DontDestroyOnLoad scene so other componets could stop working.");
+            }
+            DontDestroyOnLoad(inst);
+        {{~ end ~}}
+            instance = inst;
+            isInstanced = true;
+        }
+    {{~ else ~}}
+        {{class_name}}[] assets = Resources.LoadAll<{{class_name}}>("");
+        if (assets == null || assets.Length < 1)
+        {
+        {{~ if auto_init ~}}
+            instance = UnityEngine.ScriptableObject.CreateInstance<{{class_name}}>();
+            instance.name = "{{class_name}}";
+            isInstanced = true;
+        {{~ else ~}}
+            Debug.LogError($"Couldn't find singleton {{class_name}} in Resources folder");
+        {{~ end ~}}
+            return;
+        }
+        else if (assets.Length > 1)
+        {
+            Debug.LogWarning($"Multiple singletons {{class_name}} found in Resources folder");
+        }
+        instance = assets[0];
+        isInstanced = true;
+    {{~ end ~}}
+    }
+
+{{~ if is_mono_behaviour ~}}
+    public static void CallWhenInitialized(Action<{{class_name}}> action)
+    {
+        if (!IsInitialized)
+        {
+            action?.Invoke(instance);
+        }
+        else
+        {
+            void OneShot({{class_name}} arg)
+            {
+                action?.Invoke(instance);
+                OnInitialize -= OneShot;
+            }
+            OnInitialize += OneShot;
+        }
+    }
+
+    private void Awake()
+    {
+        {{~ if has_before_awake ~}}
+        BeforeAwake();
+        {{~ end ~}}
+        InitInstanceIfNeeded(this);
+        IsInitialized = true;
+        OnInitialize?.Invoke(instance);
+        {{~ if has_after_awake ~}}
+        AfterAwake();
+        {{~ end ~}}
+    }
+
+    private void OnDestroy()
+    {
+        {{~ if has_before_destroy ~}}
+        BeforeDestroy();
+        {{~ end ~}}
+        IsInitialized = false;
+        isInstanced = false;
+        instance = null;
+        {{~ if has_after_destroy ~}}
+        AfterDestroy();
+        {{~ end ~}}
+    }
+{{~ end ~}}
+}

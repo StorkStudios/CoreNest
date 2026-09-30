@@ -6,6 +6,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
 - Serialized data structures
 - Singletons
 - UI components
+- Roslyn code analyzer and generator
 
 ## Installation
 
@@ -19,6 +20,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
 <ul>
 <li><details open><summary>Runtime</summary><ul>
     <li><details><summary>Attributes</summary><ul>
+        <li><details><summary>Singleton</summary>Using this will generate additional singleton code for the target class. Due to this the class must be declared <code>sealed partial</code>. Can be used for <code>MonoBehaviours</code> and <code>ScriptableObjects</code>. Argument <code>persistent</code> create the singleton if it doesn't exist and move <code>GameObject</code> containing it into <code>DontDestroyOnLoad</code>, but will do nothing for <code>ScriptableObjects</code> as they are assets so the are already <i>persistent</i>. Argument <code>autoInit</code> will automatically initialize the instance reference on scene load (normally the instance is initialized in components <code>Awake</code> or when the instance is requested in <code>ScriptableObjects</code>) and create empty <code>GameObject</code> containing the singleton component or new instance of this <code>ScriptableObject</code> if not present. <code>ScriptableObject</code> singleton assets has to be created inside <code>Assets/Resources</code> folder or its subdirectories</detials></detials></li>
         <li><details><summary>StringValueAttribute</summary>Used for providing a string value of enumeration members</detials></li>
     </ul></details></li>
     <li><details><summary>Collections</summary><ul> 
@@ -38,12 +40,10 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
             <li><details><summary>HoldButton</summary><code>UnityEngine.UI.Button</code> that also measures time between pointer down and up</detials></li>
             <li><details><summary>UIBarController</summary>Component for creating ui bars (eg. health bar) that uses <code>Image.fillAmount</code> (instead of animating anchors like in built in Slider) </detials></li>
         </ul></detials></li>
-        <li><details><summary>ActiveCoroutineContext</summary>A persistent context used for coroutines (PersistentSingleton)</detials></li>
+        <li><details><summary>ActiveCoroutineContext</summary>A persistent singleton context used for coroutines</detials></li>
         <li><details><summary>Animation Event Converter</summary>Makes managing animation events easier by having them call function name <code>ExternalName</code> with a string argument specifying what UnityEvent to call</detials></li>
         <li><details><summary>ColliderEvents</summary>A <code>MonoBehaviour</code> that invokes <code>UnityEvents</code> on collider callbacks (<code>On[Enter/Stay/Exit][Tigger/Collision][2D/3D]</code>).</detials></li>
         <li><details><summary>MovingEnvironmentElement</summary>Component allowing for lerping a target transform between two points (position with rotation)</detials></li>
-        <li><details><summary>PersistentSingleton</summary>Inherit to make a script a singleton that lives in <code>DontDestroyOnLoad</code> and creates itself when referenced and not present</detials></li>
-        <li><details><summary>Singleton</summary>Inherit to make a script a singleton that lives on the current scene (the object containing this must be created manually)</detials></li>
     </ul></details></li>
     <li><details><summary>Data</summary><ul>
         <li><details><summary>ActionBinding</summary>Class with a custom property drawer for getting InputSystem's action binding</detials></li>
@@ -60,7 +60,6 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         <li><details><summary>ScriptableObjectListWrapper</summary>A simple base class for having a single data list of specified type<ul>
             <li><details><summary>ScriptableObjectStringList</summary>A scriptable object containing a single string list</detials></li>
         </ul></detials></li>
-        <li><details><summary>ScriptableObjectSingleton</summary>Inherit to make a scriptable object a singleton. The object has to be created inside <code>Assets/Resources</code> folder</detials></li>
         <li><details><summary>SpeedDistanceTimeConfig</summary>Class for defining a motion (eg. player dash). Useful when you don't know whether it should be speed in time, distance over time or distance in speed</detials></li>
         <li><details><summary>Vector2XZ</summary>A Vector2 representing a direction on XZ horizontal plane</detials></li>
     </ul></details></li>
@@ -103,8 +102,13 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
             <li><details><summary>SetCharacterColor</summary>Writes a character color into the text render buffer</detials></li>
             <li><details><summary>GetCharacterColorCorners</summary>Retrieves the colors of the corners of the character quad from the text render buffer</detials></li>
         </ul></detials></li>
+        <li><details><summary>Transform</summary><ul>
+            <li><details><summary>Lerp</summary>Interpolates transform's position, localScale and rotation between 2 given transforms using Unity's built-in Lerp methods</detials></li>
+            <li><details><summary>LerpUnclamped</summary>Interpolates transform's position, localScale and rotation between 2 given transforms using Unity's built-in LerpUnclamped methods</detials></li>
+        </ul></detials></li>
         <li><details><summary>System.Type</summary><ul>
-            <li><details><summary>FindMember</summary>Finds member (function, field, property) of a given type at specified dot-separated path. Can also return the object instance containing this member</detials></li>
+            <li><details><summary>FindMember</summary>Finds member (function, field, property) of a given type at specified dot-separated path. Can also return the object instance containing this member. Supports Unity serialized property paths with array elements (e.g. list.Array.data[0].field). If the path points to an array element, the array member and the object containing it are returned</detials></li>
+            <li><details><summary>GetCollectionElementType</summary>Gets the element type of an array or a list or null if the <code>Type</code> is neither</detials></li>
         </ul></detials></li>
         <li><details><summary>Vector2</summary><ul>
             <li><details><summary>ToVector3</summary>Creates a Vector3 from this vector</detials></li>
