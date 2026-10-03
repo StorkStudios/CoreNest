@@ -50,7 +50,7 @@ This package contains runtime and editor logic used in games by Stork'Studios. I
         <li><details><summary>IndentedStringBuilder</summary>A string builder with indentation support<ul>
             <li><details><summary>IndentScope</summary>IDisposable for creating a scope with indentation</detials></li>
         </ul></detials></li>
-        <li><details><summary>InterruptingCoroutine</summary>A wrapper for a coroutine that executes an action after specipied delay which can be stopped</detials></li>
+        <li><details><summary>InterruptingCoroutine</summary>A wrapper for a coroutine that executes an action after specified delay which can be stopped</detials></li>
         <li><details><summary>LazyComponentReference</summary>A wrapper class for component reference that calls <code>Component.GetComponent</code> when getting the value</detials></li>
         <li><details><summary>ObservableVariable</summary>A wrapper for a variable that creates a <code>ValueChanged</code> event for observing its value</detials></li>
         <li><details><summary>PriorityEvent</summary>An event that supports assigning a call priority for subscribing callbacks. (Normally when subscribing to an event the callbacks are preformed in FIFO fashion)</detials></li>
