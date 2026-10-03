@@ -1,22 +1,31 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 namespace StorkStudios.CoreNest
 {
     /// <summary>
-    /// Wrapper for a coroutine that executes a function after the specified time.
+    /// Wrapper for a coroutine that contains utility functionality for its management.
     /// </summary>
     public class InterruptingCoroutine
     {
         private readonly MonoBehaviour context;
-        private readonly System.Action functionToCall;
+        private readonly Action functionToCall;
 
         private Coroutine currentCoroutine = null;
 
-        public InterruptingCoroutine(System.Action functionToCall, MonoBehaviour callContext)
+        public InterruptingCoroutine(Action functionToCall, MonoBehaviour callContext)
         {
             context = callContext;
             this.functionToCall = functionToCall;
+        }
+
+        /// <summary>
+        /// Stops the currently running coroutine (if there is one) and calls the function immediately.
+        /// </summary>
+        public void Start()
+        {
+            Start(0);
         }
 
         /// <summary>
@@ -31,12 +40,37 @@ namespace StorkStudios.CoreNest
 
             if (delayTime > 0)
             {
-                currentCoroutine = context.StartCoroutine(CallCoroutine(delayTime, functionToCall));
+                Start(new WaitForSeconds(delayTime));
             }
             else
             {
                 functionToCall?.Invoke();
             }
+        }
+
+        /// <summary>
+        /// Stops the currently running coroutine (if there is one) and starts a new one with specified <paramref name="delayInstruction"/>.
+        /// </summary>
+        public void Start(YieldInstruction delayInstruction)
+        {
+            IEnumerator DelayFunction() {
+                yield return delayInstruction;
+            }
+
+            Start(DelayFunction);
+        }
+
+        /// <summary>
+        /// Stops the currently running coroutine (if there is one) and starts a new one with specified <paramref name="delayFunction"/>.
+        /// </summary>
+        public void Start(Func<IEnumerator> delayFunction)
+        {
+            if (currentCoroutine != null)
+            {
+                Stop();
+            }
+
+            currentCoroutine = context.StartCoroutine(CallCoroutine(delayFunction, functionToCall));
         }
 
         /// <summary>
@@ -54,9 +88,9 @@ namespace StorkStudios.CoreNest
             return false;
         }
 
-        private IEnumerator CallCoroutine(float delayTime, System.Action delayedFunction)
+        private IEnumerator CallCoroutine(Func<IEnumerator> delayFunction, Action delayedFunction)
         {
-            yield return new WaitForSeconds(delayTime);
+            yield return delayFunction?.Invoke();
 
             delayedFunction?.Invoke();
 
@@ -65,19 +99,27 @@ namespace StorkStudios.CoreNest
     }
 
     /// <summary>
-    /// Wrapper for a coroutine that executes a function after the specified time.
+    /// Wrapper for a coroutine that contains utility functionality for its management.
     /// </summary>
     public class InterruptingCoroutine<T>
     {
         private readonly MonoBehaviour context;
-        private readonly System.Action<T> functionToCall;
+        private readonly Action<T> functionToCall;
 
         private Coroutine currentCoroutine = null;
 
-        public InterruptingCoroutine(System.Action<T> functionToCall, MonoBehaviour callContext)
+        public InterruptingCoroutine(Action<T> functionToCall, MonoBehaviour callContext)
         {
             context = callContext;
             this.functionToCall = functionToCall;
+        }
+
+        /// <summary>
+        /// Stops the currently running coroutine (if there is one) and calls the function immediately.
+        /// </summary>
+        public void Start(T parameter)
+        {
+            Start(0, parameter);
         }
 
         /// <summary>
@@ -92,12 +134,38 @@ namespace StorkStudios.CoreNest
 
             if (delayTime > 0)
             {
-                currentCoroutine = context.StartCoroutine(CallCoroutine(delayTime, functionToCall, parameter));
+                Start(new WaitForSeconds(delayTime), parameter);
             }
             else
             {
                 functionToCall?.Invoke(parameter);
             }
+        }
+
+        /// <summary>
+        /// Stops the currently running coroutine (if there is one) and starts a new one with specified <paramref name="delayInstruction"/>.
+        /// </summary>
+        public void Start(YieldInstruction delayInstruction, T parameter)
+        {
+            IEnumerator DelayFunction()
+            {
+                yield return delayInstruction;
+            }
+
+            Start(DelayFunction, parameter);
+        }
+
+        /// <summary>
+        /// Stops the currently running coroutine (if there is one) and starts a new one with specified <paramref name="delayFunction"/>.
+        /// </summary>
+        public void Start(Func<IEnumerator> delayFunction, T parameter)
+        {
+            if (currentCoroutine != null)
+            {
+                Stop();
+            }
+
+            currentCoroutine = context.StartCoroutine(CallCoroutine(delayFunction, functionToCall, parameter));
         }
 
         /// <summary>
@@ -115,9 +183,9 @@ namespace StorkStudios.CoreNest
             return false;
         }
 
-        private IEnumerator CallCoroutine(float delayTime, System.Action<T> delayedFunction, T parameter)
+        private IEnumerator CallCoroutine(Func<IEnumerator> delayFunction, Action<T> delayedFunction, T parameter)
         {
-            yield return new WaitForSeconds(delayTime);
+            yield return delayFunction?.Invoke();
 
             delayedFunction?.Invoke(parameter);
 
