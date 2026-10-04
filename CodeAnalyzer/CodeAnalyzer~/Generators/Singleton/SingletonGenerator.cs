@@ -164,22 +164,24 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
 
             bool persistent = false;
             bool autoInit = false;
-            foreach (KeyValuePair<string, TypedConstant> argument in singletonAttribute.NamedArguments)
+            for (int i = 0; i < singletonAttribute.ConstructorArguments.Length; i++)
             {
-                switch (argument.Key)
+                object? argValue = singletonAttribute.ConstructorArguments[i].Value;
+                switch (i)
                 {
-                    case "Persistent":
+                    case 0:
                         {
-                            persistent = argument.Value.Value is bool v && v;
+                            persistent = argValue is bool v && v;
                             break;
                         }
-                    case "AutoInit":
+                    case 1:
                         {
-                            autoInit = argument.Value.Value is bool v && v;
+                            autoInit = argValue is bool v && v;
                             break;
                         }
                 }
             }
+
             bool isMonoBehaviour = baseTypeFullName == MonoBehaviourFullName;
 
             if (persistent && !isMonoBehaviour)
@@ -192,6 +194,7 @@ namespace StorkStudios.CoreNest.CodeAnalyzer
 
             indentedWriter.WriteLine("// auto-generated");
             indentedWriter.WriteLine("using System;");
+            indentedWriter.WriteLine("using System.Linq;");
             indentedWriter.WriteLine("using UnityEngine;");
             
             indentedWriter.WriteLine();

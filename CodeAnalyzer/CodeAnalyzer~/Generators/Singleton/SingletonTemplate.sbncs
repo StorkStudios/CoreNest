@@ -7,7 +7,7 @@ public sealed partial class {{class_name}}
     {{~ if persistent || !is_mono_behaviour ~}}
         InitInstanceIfNeeded(null);
     {{~ else ~}}
-        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => InitInstanceIfNeeded();
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, mode) => InitInstanceIfNeeded(null);
     {{~ end ~}}
     }
 {{~ end ~}}
