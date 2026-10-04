@@ -43,7 +43,7 @@ public sealed partial class {{class_name}}
         inst = inst == null ? UnityEngine.Object.FindAnyObjectByType<{{class_name}}>() : inst;
         if (inst == null)
         {
-        {{~ if auto_init ~}}
+        {{~ if auto_init || persistent ~}}
             // awake happens during during gameobject construction
             inst = new GameObject("{{class_name}}").AddComponent<{{class_name}}>();
         {{~ else ~}}
