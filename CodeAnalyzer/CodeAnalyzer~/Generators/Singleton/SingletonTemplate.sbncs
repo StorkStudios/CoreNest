@@ -92,7 +92,7 @@ public sealed partial class {{class_name}}
 {{~ if is_mono_behaviour ~}}
     public static void CallWhenInitialized(Action<{{class_name}}> action)
     {
-        if (!IsInitialized)
+        if (IsInitialized)
         {
             action?.Invoke(instance);
         }
@@ -100,7 +100,7 @@ public sealed partial class {{class_name}}
         {
             void OneShot({{class_name}} arg)
             {
-                action?.Invoke(instance);
+                action?.Invoke(arg);
                 OnInitialize -= OneShot;
             }
             OnInitialize += OneShot;
